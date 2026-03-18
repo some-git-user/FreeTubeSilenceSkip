@@ -218,6 +218,7 @@ export default defineComponent({
 
     const isSilenceSkipEnabled = ref(false)
     const trickPlayNormalSpeed = ref(props.currentPlaybackRate)
+    let silenceSkipRunId = 0
 
     /** @type {number|null} */
     let restoreCaptionIndex = null
@@ -1271,19 +1272,10 @@ export default defineComponent({
     const playerHeight = computed(() => Math.round(pipWindowHeight.value ?? videoElementHeight.value))
 
     /**
-     * Toggles and manages the silence skip functionality for the video player.
+     * Toggles and manages silence skipping for the video player.
      *
-     * When enabled, the function uses the Web Audio API to analyze the audio stream of the video element
-     * and detect silent segments. Silence detection is performed via an AnalyserNode connected in parallel
-     * to the audio output, allowing for volume analysis even when the output is muted during fast-forward.
-     *
-     * The detection logic calculates the maximum and average amplitude of the audio signal. If a silent segment
-     * is detected and persists for a defined minimum duration, the video is fast-forwarded and the output is smoothly
-     * muted using a GainNode to avoid click artifacts. When non-silent audio is detected and persists for a minimum duration,
-     * the output is smoothly unmuted and playback speed returns to normal, with a additional delay to further reduce audio clicks.
-     *
-     * The function continuously analyzes the audio stream using requestAnimationFrame, adapting playback and muting in real time.
-     * All transitions for muting and unmuting use smooth ramping via setTargetAtTime for click-free audio..
+     * Detection runs in audio processing callbacks (ScriptProcessor) instead of requestAnimationFrame,
+     * so analysis timing is tied to audio frames and is less likely to miss quiet speech onsets.
      */
     function skipSilence() {
       isSilenceSkipEnabled.value = !isSilenceSkipEnabled.value
@@ -1291,6 +1283,8 @@ export default defineComponent({
       const video_ = video.value
 
       if (video_ && player) {
+        const currentRunId = ++silenceSkipRunId
+
         const audioContext = video_.audioContext ?? new AudioContext()
         let source = video_.audioSource
         if (!source) {
@@ -1301,94 +1295,184 @@ export default defineComponent({
           video_.audioContext = audioContext
         }
         const gain = audioContext.createGain()
-        const analyser = audioContext.createAnalyser()
-        source.disconnect()
+        const analysisProcessor = audioContext.createScriptProcessor(2048, 1, 1)
+        try {
+          source.disconnect()
+        } catch {
+          // The node may already be disconnected; reconnecting below is sufficient.
+        }
         source.connect(gain)
-        source.connect(analyser)
+        source.connect(analysisProcessor)
         gain.connect(audioContext.destination)
+        analysisProcessor.connect(audioContext.destination)
 
-        analyser.fftSize = 2048
-        const bufferLength = analyser.frequencyBinCount
-        const amplitudeArray = new Uint8Array(bufferLength)
+        if (audioContext.state === 'suspended') {
+          audioContext.resume().catch(() => {})
+        }
 
-        let loopId = 0
         let silenceStart = null
         let soundStart = null
         let isSkipping = false
+        let isResumingFromSkip = false
+        let resumeGraceUntil = 0
+        let consecutiveNoisyChunks = 0
 
         trickPlayNormalSpeed.value = player.getPlaybackRate()
         const trickPlayFastForwardSpeed = SilenceSkip.SILENCE_SKIP_SPEED
 
-        function resetSkip() {
-          gain.gain.setTargetAtTime(1, audioContext.currentTime, 0.015)
-          player.trickPlay(trickPlayNormalSpeed.value)
-          isSkipping = false
-          silenceStart = null
-          soundStart = null
+        /** @param {number} speed */
+        function setTrickPlaySpeed(speed) {
+          if (player && player.getPlaybackRate() !== speed) {
+            player.trickPlay(speed)
+          }
         }
 
-        const loop = () => {
-          if (!player) {
-            cancelAnimationFrame(loopId)
+        function resetSkip() {
+          gain.gain.setTargetAtTime(1, audioContext.currentTime, 0.015)
+          setTrickPlaySpeed(trickPlayNormalSpeed.value)
+
+          isSkipping = false
+          isResumingFromSkip = false
+          silenceStart = null
+          soundStart = null
+          consecutiveNoisyChunks = 0
+        }
+
+        function cleanupSilenceSkipNodes() {
+          analysisProcessor.onaudioprocess = null
+
+          try {
+            analysisProcessor.disconnect()
+          } catch { }
+
+          try {
+            gain.disconnect()
+          } catch { }
+
+          try {
+            source.disconnect()
+          } catch { }
+
+          // Restore direct playback path when silence skip is not actively processing.
+          source.connect(audioContext.destination)
+        }
+
+        analysisProcessor.onaudioprocess = (event) => {
+          if (currentRunId !== silenceSkipRunId || !player) {
+            resetSkip()
+            cleanupSilenceSkipNodes()
             return
           }
 
           const currentPlaybackRate = player.getPlaybackRate()
           // Update the trick play speed, if the user changes the playback rate
-          if (trickPlayNormalSpeed.value !== currentPlaybackRate && trickPlayFastForwardSpeed !== currentPlaybackRate) {
+          if (
+            !isSkipping &&
+            !isResumingFromSkip &&
+            trickPlayNormalSpeed.value !== currentPlaybackRate &&
+            Math.abs(trickPlayFastForwardSpeed - currentPlaybackRate) > 0.001
+          ) {
             trickPlayNormalSpeed.value = player.getPlaybackRate()
           }
 
           // Stop the silence skip if the playback rate is higher than the threshold
           if (currentPlaybackRate > SilenceSkip.SILENCE_SKIP_SPEED) {
-            cancelAnimationFrame(loopId)
             resetSkip()
+            cleanupSilenceSkipNodes()
             isSilenceSkipEnabled.value = false
             events.dispatchEvent(new CustomEvent('toggleSkipSilence'))
             return
           }
 
           if (isSilenceSkipEnabled.value) {
-            analyser.getByteTimeDomainData(amplitudeArray)
-            const volumeValues = Array.from(amplitudeArray)
-            const filteredVolumes = volumeValues.map(v => v - 128).filter(v => v !== 0).map(Math.abs)
-            const maxVolume = filteredVolumes.length ? Math.max(...filteredVolumes) : 0
-            const averageVolume = filteredVolumes.length ? filteredVolumes.reduce((a, b) => a + b, 0) / filteredVolumes.length : 0
+            if (audioContext.state === 'suspended') {
+              audioContext.resume().catch(() => {})
+            }
+
+            const channelData = event.inputBuffer.numberOfChannels > 0
+              ? event.inputBuffer.getChannelData(0)
+              : null
+
+            let maxVolume = 0
+            let sumVolume = 0
+            let sampleCount = 0
+
+            if (channelData) {
+              for (let i = 0; i < channelData.length; i++) {
+                const magnitude = Math.abs(channelData[i])
+                if (magnitude > 0) {
+                  sampleCount++
+                  sumVolume += magnitude
+                  if (magnitude > maxVolume) {
+                    maxVolume = magnitude
+                  }
+                }
+              }
+            }
+
+            // Keep scaling equivalent to the old Uint8 time-domain range (around 0..127).
+            maxVolume *= 128
+            const averageVolume = sampleCount > 0 ? (sumVolume / sampleCount) * 128 : 0
             const silencePercentage = !isNaN(maxVolume) && !isNaN(averageVolume) ? (averageVolume / maxVolume) * SilenceSkip.SILENCE_DETECTION_MULTIPLIER : 0
+
+            // Hysteresis for stability:
+            // - Enter skip mode with the original silence check.
+            // - While skipping, keep the same check but require sustained noisy chunks before resuming.
             const isSilent = (maxVolume <= averageVolume || maxVolume <= silencePercentage)
 
             const now = performance.now()
 
-            if (isSilent && !isSkipping && !video_.paused && !video_.ended && !video_.muted) {
-              if (!silenceStart) silenceStart = now
-              if (now - silenceStart > SilenceSkip.MIN_SILENCE_DURATION_MS) {
-                gain.gain.setTargetAtTime(0, audioContext.currentTime, 0.025)
-                player.trickPlay(trickPlayFastForwardSpeed)
-                isSkipping = true
+            if (isSilent && !video_.paused && !video_.ended && !video_.muted) {
+              if (isSkipping) {
+                consecutiveNoisyChunks = 0
                 soundStart = null
+              } else if (now < resumeGraceUntil) {
+                silenceStart = null
+              } else {
+                if (!silenceStart) silenceStart = now
+                if (now - silenceStart > SilenceSkip.MIN_SILENCE_DURATION_MS) {
+                  gain.gain.setTargetAtTime(0, audioContext.currentTime, 0.025)
+                  setTrickPlaySpeed(trickPlayFastForwardSpeed)
+                  isSkipping = true
+                  soundStart = null
+                  consecutiveNoisyChunks = 0
+                }
               }
             } else if (!isSilent && isSkipping) {
-              if (!soundStart) soundStart = now
-              if (now - soundStart > SilenceSkip.MIN_SOUND_DURATION_MS) {
+              if (!soundStart) {
+                soundStart = now
+                consecutiveNoisyChunks = 0
+              }
+
+              consecutiveNoisyChunks++
+
+              // Ignore tiny non-silent spikes in long silent stretches.
+              if (now - soundStart > SilenceSkip.MIN_SOUND_DURATION_MS && consecutiveNoisyChunks >= 2) {
+                setTrickPlaySpeed(trickPlayNormalSpeed.value)
+                isResumingFromSkip = true
+                resumeGraceUntil = now + SilenceSkip.RESUME_GRACE_PERIOD_MS
                 gain.gain.setTargetAtTime(1, audioContext.currentTime, 0.015)
-                setTimeout(() => {
-                  resetSkip()
-                }, 25)
+                isSkipping = false
+                soundStart = null
+                silenceStart = null
+                consecutiveNoisyChunks = 0
               }
             } else if (!isSilent && !isSkipping) {
-              resetSkip()
+              if (isResumingFromSkip && now >= resumeGraceUntil) {
+                isResumingFromSkip = false
+              }
+
+              if (!isResumingFromSkip) {
+                resetSkip()
+              }
             } else if (isSkipping && (video_.paused || video_.ended || video_.muted)) {
               resetSkip()
             }
           } else {
             resetSkip()
-            return
+            cleanupSilenceSkipNodes()
           }
-
-          loopId = requestAnimationFrame(loop)
         }
-
-        loop()
       }
     }
 

@@ -20,11 +20,13 @@
   },
   "scripts": {
     "build": "run-s pack build-release",
+    "build:app-image": "run-s pack build-release:app-image",
     "build:arm64": "run-s pack build-release:arm64",
     "build:arm32": "run-s pack build-release:arm32",
     "build-release": "node _scripts/build.mjs",
     "build-release:arm64": "node _scripts/build.mjs arm64",
     "build-release:arm32": "node _scripts/build.mjs arm32",
+    "build-release:app-image": "node _scripts/build-app-image.mjs",
     "clean": "node _scripts/clean.mjs",
     "debug": "node _scripts/dev-runner.js --remote-debug",
     "dev": "node _scripts/dev-runner.js",

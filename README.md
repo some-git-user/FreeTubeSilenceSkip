@@ -27,6 +27,10 @@ Available for Windows (10 and later), Mac (macOS 12 and later) & Linux thanks to
 > If you have an idea or if you found a bug, please submit a [GitHub issue](https://github.com/FreeTubeApp/FreeTube/issues/new/choose) so that we can track it.  Please [search the existing issues](https://github.com/FreeTubeApp/FreeTube/issues?q=is%3Aissue+sort%3Arelevance-desc) before submitting to prevent duplicates!
 
 ## Screenshots
+| Silence Skip enabled                                                                    |
+|--------------------------------------------------------------------------------------------------|
+| <img width="1195" height="688" alt="image" src="https://github.com/user-attachments/assets/bdb17165-a614-47f6-b357-83dbe1e3cb27" />|
+
 | The main FreeTube window                                                                         |
 |--------------------------------------------------------------------------------------------------|
 | ![](https://raw.githubusercontent.com/FreeTubeApp/FreeTubeApp.io/master/src/images/FreeTube1.png)|

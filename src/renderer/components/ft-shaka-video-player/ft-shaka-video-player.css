@@ -259,3 +259,24 @@
 }
 
 /* stylelint-enable liberty/use-logical-spec */
+
+/* Audio level bar on the Skip Silence overflow-menu button */
+:deep(.skip-silence-button) {
+  position: relative;
+  overflow: hidden;
+}
+
+:deep(.skip-silence-level-bar) {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 0%;
+  background: linear-gradient(
+    to right,
+    rgb(var(--accent-color-rgb) / 45%),
+    rgb(var(--accent-color-rgb) / 15%)
+  );
+  transition: inline-size 80ms linear;
+  pointer-events: none;
+  border-radius: inherit;
+}

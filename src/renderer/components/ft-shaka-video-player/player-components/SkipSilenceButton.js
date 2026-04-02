@@ -17,8 +17,16 @@ export class SkipSilenceButton extends shaka.ui.Element {
     this.button_ = document.createElement('button')
     this.button_.classList.add('skip-silence-button', 'shaka-tooltip')
 
+    /**
+     * Animated audio-level bar rendered as the button's background fill.
+     * @private
+     */
+    this.levelBar_ = document.createElement('div')
+    this.levelBar_.classList.add('skip-silence-level-bar')
+    this.button_.appendChild(this.levelBar_)
+
     /** @private */
-    this.icon_ = new shaka.ui.MaterialSVGIcon(this.button_, PlayerIcons.TIMER_DEFAULT)
+    this.icon_ = new shaka.ui.Icon(this.button_, PlayerIcons.TIMER_DEFAULT)
 
     const label = document.createElement('label')
     label.classList.add(
@@ -56,6 +64,10 @@ export class SkipSilenceButton extends shaka.ui.Element {
     this.eventManager.listen(events, 'setSkipSilence', (event) => {
       this.skipSilenceEnabled_ = event.detail
       this.updateLocalisedStrings_()
+    })
+
+    this.eventManager.listen(events, 'silenceSkipAudioLevel', (event) => {
+      this.levelBar_.style.width = (Math.min(event.detail, 1) * 100).toFixed(1) + '%'
     })
 
     this.eventManager.listen(events, 'localeChanged', () => {

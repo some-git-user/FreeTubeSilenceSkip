@@ -1315,7 +1315,7 @@ export default defineComponent({
           video_.audioContext = audioContext
         }
         const gain = audioContext.createGain()
-        const analysisProcessor = audioContext.createScriptProcessor(2048, 1, 1)
+        const analysisProcessor = audioContext.createScriptProcessor(256, 1, 1)
         try {
           source.disconnect()
         } catch {
@@ -1375,6 +1375,9 @@ export default defineComponent({
 
           // Restore direct playback path when silence skip is not actively processing.
           source.connect(audioContext.destination)
+
+          // Reset the level bar when the audio processing pipeline is torn down.
+          events.dispatchEvent(new CustomEvent('silenceSkipAudioLevel', { detail: 0 }))
         }
 
         analysisProcessor.onaudioprocess = (event) => {
@@ -1434,6 +1437,8 @@ export default defineComponent({
             maxVolume *= 128
             const averageVolume = sampleCount > 0 ? (sumVolume / sampleCount) * 128 : 0
             const silencePercentage = !isNaN(maxVolume) && !isNaN(averageVolume) ? (averageVolume / maxVolume) * SilenceSkip.SILENCE_DETECTION_MULTIPLIER : 0
+
+            events.dispatchEvent(new CustomEvent('silenceSkipAudioLevel', { detail: maxVolume / 128 }))
 
             // Hysteresis for stability:
             // - Enter skip mode with the original silence check.

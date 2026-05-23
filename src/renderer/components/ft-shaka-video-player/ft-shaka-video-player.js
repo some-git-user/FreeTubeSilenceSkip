@@ -1477,7 +1477,11 @@ export default defineComponent({
 
             const silencePercentage = !isNaN(maxVolume) && !isNaN(averageVolume) ? (averageVolume / maxVolume) * SilenceSkip.SILENCE_DETECTION_MULTIPLIER : 0
 
-            events.dispatchEvent(new CustomEvent('silenceSkipAudioLevel', { detail: maxVolume / 128 }))
+            const linearLevel = maxVolume / 128
+            const MIN_DB = -40
+            const dbLevel = linearLevel > 0 ? 20 * Math.log10(linearLevel) : MIN_DB
+            const barLevel = Math.max(0, Math.min(1, (dbLevel - MIN_DB) / -MIN_DB))
+            events.dispatchEvent(new CustomEvent('silenceSkipAudioLevel', { detail: barLevel }))
 
             // Hysteresis for stability:
             // - Enter skip mode with the original silence check.

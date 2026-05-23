@@ -38,6 +38,66 @@ import { setupSabrScheme } from '../../helpers/player/SabrSchemePlugin'
 // The UTF-8 characters "h", "t", "t", and "p".
 const HTTP_IN_HEX = 0x68747470
 
+/**
+ * AudioWorklet processor that analyses audio amplitude and posts results to the main thread.
+ * Replaces the deprecated ScriptProcessorNode / createScriptProcessor approach.
+ */
+const SILENCE_ANALYSIS_PROCESSOR_CODE = `
+class SilenceAnalysisProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super()
+    this._active = true
+    this.port.onmessage = (e) => {
+      if (e.data === 'stop') this._active = false
+    }
+  }
+
+  process(inputs) {
+    if (!this._active) return false
+
+    const channelData = inputs[0]?.[0]
+
+    let maxVolume = 0
+    let sumVolume = 0
+    let sampleCount = 0
+
+    if (channelData) {
+      for (let i = 0; i < channelData.length; i++) {
+        const magnitude = Math.abs(channelData[i])
+        if (magnitude > 0) {
+          sampleCount++
+          sumVolume += magnitude
+          if (magnitude > maxVolume) maxVolume = magnitude
+        }
+      }
+    }
+
+    // Scale equivalent to the old Uint8 time-domain range (around 0..127).
+    maxVolume *= 128
+    this.port.postMessage({
+      maxVolume,
+      averageVolume: sampleCount > 0 ? (sumVolume / sampleCount) * 128 : 0
+    })
+
+    return true
+  }
+}
+
+registerProcessor('silence-analysis-processor', SilenceAnalysisProcessor)
+`
+
+/** @type {string | null} Lazily created blob URL for the silence analysis AudioWorklet module. */
+let silenceAnalysisWorkletUrl = null
+
+function getSilenceAnalysisWorkletUrl() {
+  if (!silenceAnalysisWorkletUrl) {
+    silenceAnalysisWorkletUrl = URL.createObjectURL(
+      new Blob([SILENCE_ANALYSIS_PROCESSOR_CODE], { type: 'application/javascript' })
+    )
+  }
+  return silenceAnalysisWorkletUrl
+}
+
 const USE_OVERFLOW_MENU_WIDTH_THRESHOLD = 634
 
 const RequestType = shaka.net.NetworkingEngine.RequestType
@@ -1292,10 +1352,10 @@ export default defineComponent({
     /**
      * Toggles and manages silence skipping for the video player.
      *
-     * Detection runs in audio processing callbacks (ScriptProcessor) instead of requestAnimationFrame,
+     * Detection runs in AudioWorklet processing callbacks instead of requestAnimationFrame,
      * so analysis timing is tied to audio frames and is less likely to miss quiet speech onsets.
      */
-    function skipSilence() {
+    async function skipSilence() {
       isSilenceSkipEnabled.value = !isSilenceSkipEnabled.value
 
       const video_ = video.value
@@ -1313,16 +1373,20 @@ export default defineComponent({
           video_.audioContext = audioContext
         }
         const gain = audioContext.createGain()
-        const analysisProcessor = audioContext.createScriptProcessor(256, 1, 1)
+
+        await audioContext.audioWorklet.addModule(getSilenceAnalysisWorkletUrl())
+        const analysisNode = new AudioWorkletNode(audioContext, 'silence-analysis-processor')
+
         try {
           source.disconnect()
         } catch {
           // The node may already be disconnected; reconnecting below is sufficient.
         }
         source.connect(gain)
-        source.connect(analysisProcessor)
+        source.connect(analysisNode)
         gain.connect(audioContext.destination)
-        analysisProcessor.connect(audioContext.destination)
+        // Connect analysisNode to destination so the graph pulls it (its output is silence).
+        analysisNode.connect(audioContext.destination)
 
         if (audioContext.state === 'suspended') {
           audioContext.resume().catch(() => {})
@@ -1357,10 +1421,11 @@ export default defineComponent({
         }
 
         function cleanupSilenceSkipNodes() {
-          analysisProcessor.onaudioprocess = null
+          analysisNode.port.postMessage('stop')
+          analysisNode.port.onmessage = null
 
           try {
-            analysisProcessor.disconnect()
+            analysisNode.disconnect()
           } catch { }
 
           try {
@@ -1378,7 +1443,7 @@ export default defineComponent({
           events.dispatchEvent(new CustomEvent('silenceSkipAudioLevel', { detail: 0 }))
         }
 
-        analysisProcessor.onaudioprocess = (event) => {
+        analysisNode.port.onmessage = ({ data: { maxVolume, averageVolume } }) => {
           if (currentRunId !== silenceSkipRunId || !player) {
             resetSkip()
             cleanupSilenceSkipNodes()
@@ -1410,30 +1475,6 @@ export default defineComponent({
               audioContext.resume().catch(() => {})
             }
 
-            const channelData = event.inputBuffer.numberOfChannels > 0
-              ? event.inputBuffer.getChannelData(0)
-              : null
-
-            let maxVolume = 0
-            let sumVolume = 0
-            let sampleCount = 0
-
-            if (channelData) {
-              for (let i = 0; i < channelData.length; i++) {
-                const magnitude = Math.abs(channelData[i])
-                if (magnitude > 0) {
-                  sampleCount++
-                  sumVolume += magnitude
-                  if (magnitude > maxVolume) {
-                    maxVolume = magnitude
-                  }
-                }
-              }
-            }
-
-            // Keep scaling equivalent to the old Uint8 time-domain range (around 0..127).
-            maxVolume *= 128
-            const averageVolume = sampleCount > 0 ? (sumVolume / sampleCount) * 128 : 0
             const silencePercentage = !isNaN(maxVolume) && !isNaN(averageVolume) ? (averageVolume / maxVolume) * SilenceSkip.SILENCE_DETECTION_MULTIPLIER : 0
 
             events.dispatchEvent(new CustomEvent('silenceSkipAudioLevel', { detail: maxVolume / 128 }))

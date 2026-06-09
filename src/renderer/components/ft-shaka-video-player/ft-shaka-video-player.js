@@ -164,6 +164,10 @@ export default defineComponent({
       type: Number,
       default: 0
     },
+    chaptersSrc: {
+      type: String,
+      default: ''
+    },
     storyboardSrc: {
       type: String,
       default: ''
@@ -857,22 +861,18 @@ export default defineComponent({
 
     const uiConfig = computed(() => {
       const controlPanelElements = [
+        'ft_skip_previous',
         'play_pause',
+        'ft_skip_next',
         'mute',
         'volume',
         'time_and_duration',
         'spacer'
       ]
-      const controlPanelElementsWithSkipButtons = [
-        ...controlPanelElements.slice(0, 1),
-        'ft_skip_previous',
-        'ft_skip_next',
-        ...controlPanelElements.slice(1)
-      ]
 
       /** @type {shaka.extern.UIConfiguration} */
       const uiConfig = {
-        controlPanelElements: props.watchingPlaylist ? controlPanelElementsWithSkipButtons : controlPanelElements,
+        controlPanelElements: controlPanelElements,
         overflowMenuButtons: [],
 
         // only set this to label when we actually have labels, so that the warning doesn't show up
@@ -894,6 +894,7 @@ export default defineComponent({
           'playback_rate',
           'captions',
           'ft_audio_tracks',
+          'chapter',
           'loop',
           'ft_skip_silence_toggle',
           'ft_screenshot',
@@ -922,6 +923,7 @@ export default defineComponent({
           'captions',
           'playback_rate',
           props.format === 'legacy' ? 'ft_legacy_quality' : 'quality',
+          'chapter',
           'loop',
           'ft_skip_silence_toggle',
           'recenter_vr',
@@ -956,6 +958,15 @@ export default defineComponent({
         removeFromArrayIfExists(uiConfig.overflowMenuButtons, 'toggle_stereoscopic')
       }
 
+      if (!props.watchingPlaylist) {
+        removeFromArrayIfExists(uiConfig.controlPanelElements, 'ft_skip_previous')
+        removeFromArrayIfExists(uiConfig.controlPanelElements, 'ft_skip_next')
+      }
+
+      if (props.chapters.length === 0) {
+        removeFromArrayIfExists(uiConfig.overflowMenuButtons, 'chapter')
+      }
+
       return uiConfig
     })
 
@@ -976,6 +987,10 @@ export default defineComponent({
           contextMenuElements: ['ft_stats'],
           enableTooltips: true,
           seekBarColors: {
+            // shaka-player's chapter markers only show up part of the time for the DASH and audio formats
+            // the issue is clearly on the FreeTube side as shaka-player's demo page works fine and they show up all the time for the legacy formats.
+            // As I have spent way too much time debugging it and still cannot make sense of it, we'll stick with FreeTube's own chapter markers for now.
+            chapters: 'transparent',
             played: 'var(--primary-color)'
           },
           showAudioCodec: false,
@@ -3193,7 +3208,7 @@ export default defineComponent({
         sabrManifest = player.getManifest()
       }
 
-      // For SABR we include the thumbnails and subtitles in the manifest
+      // For SABR we include the thumbnails, chapters and subtitles in the manifest
       if (!process.env.SUPPORTS_LOCAL_API || props.format === 'legacy' || props.manifestMimeType !== MANIFEST_TYPE_SABR) {
         const promises = []
 
@@ -3263,6 +3278,15 @@ export default defineComponent({
             // If an error occurs with them, it's not critical
             player.addThumbnailsTrack(props.storyboardSrc, 'text/vtt')
               .catch(error => logShakaError(error, 'addThumbnailsTrack', props.videoId, props.storyboardSrc))
+          )
+        }
+
+        if (!isLive.value && props.chaptersSrc.length > 0) {
+          promises.push(
+            // Only log the error, as the chapters are a nice to have (we have our own UI outside of the player too)
+            // If an error occurs with them, it is not critical
+            player.addChaptersTrack(props.chaptersSrc, 'und', 'text/vtt')
+              .catch(error => logShakaError(error, 'addChaptersTrack', props.videoId, props.chaptersSrc))
           )
         }
 

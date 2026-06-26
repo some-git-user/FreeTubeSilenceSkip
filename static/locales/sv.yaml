@@ -600,6 +600,7 @@ Settings:
     Show Family Friendly Only: Visa endast barnvänligt innehåll
     Hide Search Bar: Dölj sökfältet
     Hide Uploader on Watch page: Dölj uppladdaren på visningssidan
+    Disable Channel Links: Inaktivera kanallänkar
   Password Dialog:
     Password: Lösenord
     Enter Password To Unlock: Ange lösenord för att låsa upp inställningar
@@ -861,6 +862,7 @@ Video:
   Watch:
     'Remaining preroll-ad time: {remindingTimeSeconds}s': 'Återstående tid före annonsstart: {remindingTimeSeconds}s'
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Återstående SABR-återställningstid: {remindingTimeSeconds}s'
+  Private: Privata videor kan inte ses i FreeTube eftersom de kräver Google-inloggning och äganderätt till videon.
 Playlist:
   #& About
   View Full Playlist: 'Visa hela spellistan'

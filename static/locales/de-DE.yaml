@@ -595,6 +595,7 @@ Settings:
     Show Family Friendly Only: Nur familienfreundliche Inhalte anzeigen
     Hide Search Bar: Suchleiste ausblenden
     Hide Uploader on Watch page: Uploader auf der Videoseite ausblenden
+    Disable Channel Links: Kanal-Links deaktivieren
   Experimental Settings:
     Experimental Settings: Experimentell
     Warning: Diese Einstellungen sind experimentell und können zu Abstürzen führen, wenn sie aktiviert sind. Es wird dringend empfohlen, Backups zu erstellen. Verwendung auf eigene Gefahr!
@@ -816,6 +817,7 @@ Video:
   Watch:
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Verbleibende SABR-Wartezeit: {remindingTimeSeconds}s'
     'Remaining preroll-ad time: {remindingTimeSeconds}s': 'Verbleibende Werbezeit: {remindingTimeSeconds}s'
+  Private: Private Videos können in FreeTube nicht angesehen werden, da sie Google-Anmeldung und den Besitz des Videos erfordern.
 Playlist:
   #& About
   View Full Playlist: Vollständige Playlist ansehen

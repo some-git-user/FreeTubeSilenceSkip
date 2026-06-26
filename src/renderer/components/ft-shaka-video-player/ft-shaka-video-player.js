@@ -1739,7 +1739,11 @@ export default defineComponent({
       const isPortrait = variants[0].height > variants[0].width
 
       let matches = variants.filter(variant => {
-        return quality === (isPortrait ? variant.width : variant.height)
+        const { width, height } = variant
+        const [primary, secondary] = isPortrait ? [width, height] : [height, width]
+        const aspectRatio = secondary / primary
+        const resolution = aspectRatio > 16 / 9 ? Math.round(secondary * 9 / 16) : primary
+        return quality === resolution
       })
 
       if (matches.length === 0) {
@@ -2557,6 +2561,23 @@ export default defineComponent({
       seekBySeconds(dist, true)
     }
 
+    // Blur player buttons to remove :focus-visible state, preventing tooltips from staying visible
+    const buttonWithTooltipClasses = [
+      'shaka-play-button',
+      'shaka-fullscreen-button',
+      'shaka-mute-button',
+      'shaka-pip-button',
+      'full-window-button',
+      'theatre-button',
+      'screenshot-button',
+    ]
+    function blurTooltipButtons() {
+      const element = document.activeElement
+      if (buttonWithTooltipClasses.some(className => element.classList.contains(className))) {
+        element.blur()
+      }
+    }
+
     /**
      * @param {KeyboardEvent} event
      */
@@ -2596,6 +2617,11 @@ export default defineComponent({
         return
       }
 
+      // allow focusing on search bar without affecting the playback
+      if ((process.platform === 'darwin' && event.metaKey) && event.key.toLowerCase() === 'l') {
+        return
+      }
+
       const video_ = video.value
 
       // Skip to next video in playlist or recommended
@@ -2619,6 +2645,7 @@ export default defineComponent({
           // Toggle Play/Pause
           event.preventDefault()
           video_.paused ? video_.play() : video_.pause()
+          blurTooltipButtons()
           break
         case KeyboardShortcuts.VIDEO_PLAYER.PLAYBACK.LARGE_REWIND:
           // Rewind by 2x the time-skip interval (in seconds)
@@ -2646,6 +2673,7 @@ export default defineComponent({
           // Toggle full screen
           event.preventDefault()
           ui.getControls().toggleFullScreen()
+          blurTooltipButtons()
           break
         case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.MUTE:
           // Toggle mute only if metakey is not pressed
@@ -2658,6 +2686,7 @@ export default defineComponent({
             const message = isMuted ? '0%' : `${Math.round(video_.volume * 100)}%`
             showValueChange(message, messageIcon)
           }
+          blurTooltipButtons()
           break
         case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.CAPTIONS: {
           // Toggle caption/subtitles
@@ -2722,6 +2751,7 @@ export default defineComponent({
               controls.togglePiP()
             }
           }
+          blurTooltipButtons()
           break
         case '0':
         case '1':
@@ -2807,6 +2837,7 @@ export default defineComponent({
           events.dispatchEvent(new CustomEvent('setFullWindow', {
             detail: !fullWindowEnabled.value
           }))
+          blurTooltipButtons()
           break
         case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.THEATRE_MODE:
           // Toggle theatre mode
@@ -2817,6 +2848,7 @@ export default defineComponent({
               detail: !props.useTheatreMode
             }))
           }
+          blurTooltipButtons()
           break
         case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.TAKE_SCREENSHOT:
           if (enableScreenshot.value && props.format !== 'audio') {
@@ -2824,6 +2856,7 @@ export default defineComponent({
             // Take screenshot
             takeScreenshot()
           }
+          blurTooltipButtons()
           break
       }
     }

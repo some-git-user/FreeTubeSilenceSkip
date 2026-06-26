@@ -489,6 +489,19 @@ export default defineComponent({
         const videoInfo = await getLocalVideoInfo(this.videoId)
         const { info: result, poToken, clientInfo, adEndTimeUnixMs } = videoInfo
 
+        const playabilityStatus = result.playability_status
+        this.playabilityStatus = playabilityStatus.status
+
+        if (playabilityStatus.status === 'LOGIN_REQUIRED' && playabilityStatus.error_screen?.reason?.text === 'Private video') {
+          // Private videos cannot be played in FreeTube, as they require to be logged as the owner of the video
+          // so there is no point continuing or trying any other backends as it will always fail
+          this.errorMessage = this.$t('Video.Private')
+          this.thumbnail = this.getUnavailableVideoThumbnail()
+          this.isLoading = false
+          this.updateTitle()
+          return
+        }
+
         this.adEndTimeUnixMs = adEndTimeUnixMs
 
         this.isFamilyFriendly = result.basic_info.is_family_safe
@@ -642,9 +655,6 @@ export default defineComponent({
 
         this.videoChapters = chapters
         this.videoChaptersKind = chaptersKind
-
-        const playabilityStatus = result.playability_status
-        this.playabilityStatus = playabilityStatus.status
 
         // The apostrophe is intentionally that one (char code 8217), because that is the one YouTube uses
         const BOT_MESSAGE = 'Sign in to confirm you’re not a bot'

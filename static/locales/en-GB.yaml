@@ -417,7 +417,10 @@ Settings:
       Format Label: Screenshot format
       Modes:
         Ask Path: Ask for Save Folder
+        Save To Folder: Save to Folder
+        Clipboard: Copy to Clipboard
       File Name Label: Filename pattern
+      Mode: Screenshot Mode
     Skip by Scrolling Over Video Player: Skip by scrolling over video player
     Autoplay Interruption Timer: Autoplay Interruption Timer
     Default Viewing Mode:
@@ -598,6 +601,7 @@ Settings:
     Show Family Friendly Only: Show family-friendly only
     Hide Search Bar: Hide search bar
     Hide Uploader on Watch page: Hide Uploader on Watch page
+    Disable Channel Links: Disable Channel Links
   Experimental Settings:
     Replace HTTP Cache: Replace HTTP cache
     Experimental Settings: Experimental
@@ -859,6 +863,7 @@ Video:
     'Remaining preroll-ad time: {remindingTimeSeconds}s': 'Remaining preroll-ad time: {remindingTimeSeconds}s'
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Remaining SABR backoff time: {remindingTimeSeconds}s'
   Popout Live Chat: Popout Chat
+  Private: Private videos cannot be watched in FreeTube as they require Google login and ownership of the video.
 Playlist:
   #& About
   Playlist: Playlist
@@ -1114,3 +1119,5 @@ KeyboardShortcutPrompt:
 shortcutLabelSeparator: ｜
 Compact side navigation: Compact side navigation
 Expand side navigation: Expand side navigation
+Screenshot Clipboard Success: Saved screenshot to clipboard
+Screenshot Clipboard Error: Screenshot copy to clipboard failed

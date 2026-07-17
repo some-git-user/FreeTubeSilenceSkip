@@ -69,7 +69,6 @@ export function calculatePublishedDate(publishedText, isLive = false, isUpcoming
   }
 
   if (!publishedText) {
-    console.error("publishedText is missing but the video isn't live or upcoming")
     return undefined
   }
 
@@ -159,6 +158,36 @@ export function buildVTTFileLocally(storyboard, videoLengthSeconds) {
     }
   }
   return vttString
+}
+
+/**
+ * @param {{ startSeconds: number, endSeconds: number, title: string }[]} chapters
+ */
+export function buildChaptersVttFile(chapters) {
+  const blocks = ['WEBVTT']
+
+  for (const chapter of chapters) {
+    blocks.push(`\
+${secondsToVttTimestamp(chapter.startSeconds)} --> ${secondsToVttTimestamp(chapter.endSeconds)}
+${chapter.title.trim()}`)
+  }
+
+  return blocks.join('\n\n') + '\n'
+}
+
+/**
+ * @param {number} seconds
+ */
+function secondsToVttTimestamp(seconds) {
+  const formattedHours = Math.trunc(seconds / 3600).toFixed(0).padStart(2, '0')
+  seconds %= 3600
+
+  const formattedMinutes = Math.trunc(seconds / 60).toFixed(0).padStart(2, '0')
+  seconds %= 60
+
+  const formattedSeconds = seconds.toFixed(3).padStart(6, '0')
+
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
 }
 
 export const ToastEventBus = new EventTarget()
@@ -719,7 +748,7 @@ export function toDistractionFreeTitle(title, minUpperCase = 3) {
  * @returns {string}
  */
 export function formatNumber(number, options = undefined) {
-  return Intl.NumberFormat([i18n.global.locale, 'en'], options).format(number)
+  return Intl.NumberFormat([i18n.global.locale.value, 'en'], options).format(number)
 }
 
 export function getTodayDateStrLocalTimezone() {
@@ -792,7 +821,7 @@ export function getRelativeTimeFromDate(date, hideSeconds = false, useThirtyDayM
 
   // Using `Math.ceil` so that -1.x days ago displayed as 1 day ago
   // Notice that the value is turned to negative to be displayed as "ago"
-  return new Intl.RelativeTimeFormat([i18n.global.locale, 'en']).format(Math.ceil(-timeDiffFromNow), timeUnit)
+  return new Intl.RelativeTimeFormat([i18n.global.locale.value, 'en']).format(Math.ceil(-timeDiffFromNow), timeUnit)
 }
 
 /**

@@ -272,6 +272,32 @@ const SilenceSkip = {
   RESUME_GRACE_PERIOD_MS: 60, // Hold normal speed briefly after detected sound to avoid clipping quiet speech onsets.
 }
 
+const LIGHT_BASE_THEMES = [
+  'light',
+  'pastelPink',
+  'catppuccinLatte',
+  'everforestLightHard',
+  'everforestLightMedium',
+  'everforestLightLow',
+  'gruvboxLight',
+  'solarizedLight',
+]
+
+const DARK_BASE_THEMES = [
+  'dark',
+  'black',
+  'nordic',
+  'hotPink',
+  'catppuccinFrappe',
+  'catppuccinMocha',
+  'dracula',
+  'everforestDarkHard',
+  'everforestDarkMedium',
+  'everforestDarkLow',
+  'gruvboxDark',
+  'solarizedDark',
+]
+
 export {
   IpcChannels,
   DBActions,
@@ -287,4 +313,6 @@ export {
   SEARCH_RESULTS_DISPLAY_LIMIT,
   MIXED_SEARCH_HISTORY_ENTRIES_DISPLAY_LIMIT,
   ABOUT_BITCOIN_ADDRESS,
+  LIGHT_BASE_THEMES,
+  DARK_BASE_THEMES,
 }

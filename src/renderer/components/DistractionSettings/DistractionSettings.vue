@@ -54,6 +54,12 @@
           :default-value="showDistractionFreeTitles"
           @change="updateShowDistractionFreeTitles"
         />
+        <FtToggleSwitch
+          :label="t('Settings.Distraction Free Settings.Hide Comments')"
+          :compact="true"
+          :default-value="hideComments"
+          @change="updateHideComments"
+        />
       </div>
     </div>
     <br class="hide-on-mobile">
@@ -194,6 +200,12 @@
           :default-value="hideChannelPodcasts"
           @change="updateHideChannelPodcasts"
         />
+        <FtToggleSwitch
+          :label="t('Settings.Distraction Free Settings.Hide Channel Shows')"
+          :compact="true"
+          :default-value="hideChannelShows"
+          @change="updateHideChannelShows"
+        />
       </div>
       <div class="switchColumn">
         <FtToggleSwitch
@@ -266,12 +278,6 @@
           :compact="true"
           :default-value="hideRecommendedVideos"
           @change="handleHideRecommendedVideos"
-        />
-        <FtToggleSwitch
-          :label="t('Settings.Distraction Free Settings.Hide Comments')"
-          :compact="true"
-          :default-value="hideComments"
-          @change="updateHideComments"
         />
         <FtToggleSwitch
           :label="t('Settings.Distraction Free Settings.Hide Profile Pictures in Comments')"
@@ -550,6 +556,16 @@ const hideChannelCourses = computed(() => store.getters.getHideChannelCourses)
  */
 function updateHideChannelCourses(value) {
   store.dispatch('updateHideChannelCourses', value)
+}
+
+/** @type {import('vue').ComputedRef<boolean>} */
+const hideChannelShows = computed(() => store.getters.getHideChannelShows)
+
+/**
+ * @param {boolean} value
+ */
+function updateHideChannelShows(value) {
+  store.dispatch('updateHideChannelShows', value)
 }
 
 /** @type {import('vue').ComputedRef<boolean>} */

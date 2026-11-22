@@ -91,6 +91,7 @@ Search Filters:
     Location: Konum
     VR180: VR180
   Clear Filters: Süzgeci Temizle
+  No results found: Sonuç bulunamadı. Farklı anahtar kelimeler deneyin veya arama filtrelerini değiştirin
 Subscriptions:
     # On Subscriptions Page
   Subscriptions: 'Abonelikler'
@@ -198,6 +199,7 @@ User Playlists:
   Export list of URLs: URL'lerin listesini dışa aktar
   Move Video to the Top: Videoyu En Üste Taşı
   Move Video to the Bottom: Videoyu En Alta Taşı
+  This playlist is private or does not exist.: Bu oynatma listesi gizli veya yok.
 History:
   # On History Page
   History: 'Geçmiş'
@@ -265,12 +267,12 @@ Settings:
       Dracula: 'Drakula'
       System Default: Sistem Varsayılanı
       Catppuccin Mocha: Catppuccin Mocha
-      Pastel Pink: Pastel Pembe
+      Pastel Pink: Soluk Pembe
       Hot Pink: Sıcak Pembe
       Nordic: Kuzey
       Solarized Light: Solarized Açık
       Solarized Dark: Solarized Koyu
-      Gruvbox Dark: Gruvbox Dark
+      Gruvbox Dark: Gruvbox Koyu
       Gruvbox Light: Gruvbox Aydınlık
       Catppuccin Frappe: Catppuccin Frappe
       Everforest Dark Medium: Everforest Koyu Orta
@@ -384,11 +386,11 @@ Settings:
     Enable Theatre Mode by Default: 'Sinema Modunu Öntanımlı Olarak Etkinleştir'
     Default Volume: 'Öntanımlı Ses Düzeyi'
     Default Playback Rate: 'Öntanımlı Oynatma Hızı'
-    Default Video Format:
-      Default Video Format: 'Öntanımlı Video Biçimi'
+    Default Media Format:
       Dash Formats: 'DASH Biçimleri'
       Legacy Formats: 'Eski Biçimler'
       Audio Formats: 'Ses Biçimleri'
+      Default Media Format: Öntanımlı Medya Biçimi
     Default Quality:
       Default Quality: 'Öntanımlı Kalite'
       Auto: 'Otomatik'
@@ -494,7 +496,6 @@ Settings:
     How do I import my subscriptions?: 'Aboneliklerimi nasıl içe artarırım?'
     Manage Subscriptions: Abonelikleri Yönet
     Export Playlists: Oynatma Listelerini Dışa Aktar
-    All playlists has been successfully imported: Tüm oynatma listeleri başarıyla içe aktarıldı
     Playlist insufficient data: '"{playlist}" oynatma listesi için yetersiz veri, öge atlanıyor'
     Import Playlists: Oynatma Listelerini İçe Aktar
     All playlists has been successfully exported: Tüm oynatma listeleri başarıyla dışa aktarıldı
@@ -520,6 +521,7 @@ Settings:
     Setting object has insufficient data, skipping item: Ayar nesnesinde yeterli veri yok, öge atlanıyor
     Unknown setting key: 'Bilinmeyen ayar anahtarı: {key}'
     Non-transferable setting key: 'Aktarılamayan ayar anahtarı: {key}'
+    Playlists have been successfully imported: 1/{total} oynatma listesi başarıyla içe aktarıldı | {count}/{total} oynatma listesi başarıyla içe aktarıldı
   Distraction Free Settings:
     Hide Live Chat: Canlı Sohbeti Gizle
     Hide Popular Videos: Popüler Videoları Gizle
@@ -568,6 +570,10 @@ Settings:
     Hide Channel Courses: Kanal "Kurslar" Sekmesini Gizle
     Hide Channel Posts: Kanalın "Gönderiler" sekmesini gizle
     Hide Subscriptions Posts: Abonelik gönderilerini gizle
+    Add: Ekle
+    Remove: Kaldır
+    Hide Channel Shows: Kanalın "Programlar" sekmesini gizle
+    More Items Count: +{count} daha…
   The app needs to restart for changes to take effect. Restart and apply change?: Değişikliklerin etkili olması için uygulamanın yeniden başlatılması gerekiyor. Yeniden başlatılsın ve değişiklikler uygulansın mı?
   Proxy Settings:
     Error getting network information. Is your proxy configured properly?: Ağ bilgileri alınırken hata oluştu. Vekil sunucunuz doğru yapılandırıldı mı?
@@ -601,6 +607,10 @@ Settings:
     UseDeArrowTitles: DeArrow Video Başlıklarını Kullan
     UseDeArrowThumbnails: Önizleme görselleri için DeArrow kullan
     'DeArrow Thumbnail Generator API Url (Default is https://dearrow-thumb.ajay.app)': DeArrow Önizleme Görseli Oluşturucu API URL'si (Öntanımlı https://dearrow-thumb.ajay.app)
+    Excluded Channels:
+      Disabled Message: Bazı kanallar, kimlik numaraları kullanılarak hariç tutuldu ve işleme alınmadı. Bu kimlik numaraları güncellenirken özellik engellendi
+      Excluded Channels: Hariç Tutulan Kanallar
+      Tooltip: SponsorBlock özelliğinin devre dışı bırakılması için bir kanal kimliği girin. Bu kanaldaki videolardaki sponsor bölümleri atlanmayacaktır. Girilen kanal kimliği tam olarak eşleşmelidir ve büyük/küçük harf duyarlıdır.
   External Player Settings:
     Custom External Player Arguments: Özel Harici Oynatıcı Argümanları
     Custom External Player Executable: Özel Harici Oynatıcı Çalıştırılabilir Dosyası
@@ -622,6 +632,7 @@ Settings:
     Replace HTTP Cache: HTTP Önbelleğini Değiştir
     Warning: Bu ayarlar deneyseldir, etkin durumdayken çökmelere neden olabilirler. Yedekleme yapılması şiddetle tavsiye edilir. Kullanmanız durumunda risk size aittir!
     Experimental Settings: Deneysel
+    Disable Hardware Acceleration: Donanım Hızlandırmasını Devre Dışı Bırak
   Password Dialog:
     Password: Parola
     Enter Password To Unlock: Ayarların kilidini açmak için parolayı girin
@@ -635,6 +646,9 @@ Settings:
   SABR:
     Label: DASH arka ucu olarak SABR etkinleştir
     Tooltip: SABR, gelecek sürümlerde tek DASH arka ucu olacak ve devre dışı bırakılamayacaktır. Bu seçenek, erken uygulamada kurtarılamaz sorunlar olması ihtimaline karşı sunulmaktadır.
+  Search Settings: Ayarlarda Ara
+  Settings found: 1 ayar bulundu | {count} ayar bulundu
+  No Matching Settings: Aramanızla eşleşen ayar bulunamadı.
 About:
   #On About page
   About: 'Hakkında'
@@ -704,6 +718,7 @@ Profile:
   Create Profile Name: Profil Adı Oluştur
   Open Profile Dropdown: Profil Açılır Menüsünü Aç
   Close Profile Dropdown: Profil Açılır Menüsünü Kapat
+  Go To Profile Manager: Profil Yöneticisine Git
 Channel:
   Subscribe: 'Abone ol'
   Unsubscribe: 'Abonelikten çık'
@@ -714,11 +729,11 @@ Channel:
   Your search results have returned 0 results: 'Arama sonuçlarınız 0 sonuç verdi'
   Videos:
     Videos: 'Videolar'
-    This channel does not currently have any videos: 'Bu kanalda şu anda herhangi bir video yok'
     Sort Types:
       Newest: 'En yeni'
       Oldest: 'En eski'
       Most Popular: 'En Popüler'
+    This channel has videos but none could be displayed, try fetching more: Bu kanalda videolar var ancak hiçbiri görüntülenemedi, daha fazlasını getirmeyi deneyin
   Playlists:
     Playlists: 'Oynatma Listeleri'
     This channel does not currently have any playlists: 'Bu kanalda şu anda herhangi bir oynatma listesi yok'
@@ -736,6 +751,7 @@ Channel:
     Details: Ayrıntılar
     Joined: Katıldı
     Location: Konum
+    Links: Bağlantılar
   This channel is age-restricted and currently cannot be viewed in FreeTube.: Bu kanal yaş sınırlamasına tabidir ve şu anda FreeTube'da görüntülenememektedir.
   Channel Tabs: Kanal Sekmeleri
   This channel does not allow searching: Bu kanal aramaya izin vermiyor
@@ -766,6 +782,9 @@ Channel:
     Courses: Kurslar
     This channel does not currently have any courses: Bu kanalda şu anda herhangi bir kurs bulunmamaktadır
   View All: Tümünü Görüntüle
+  Shows:
+    Shows: Programlar
+    This channel does not currently have any shows: Bu kanalda şu anda herhangi bir program yok
 Video:
   Mark As Watched: 'İzlendi Olarak İşaretle'
   Remove From History: 'Geçmişten Kaldır'
@@ -867,7 +886,7 @@ Video:
     Skipped segment: '{segmentCategory} bölümü atlandı'
     Autoplay is off: Otomatik Oynat Kapalı
     Autoplay is on: Otomatik Oynat Açık
-  IP block: YouTube, IP adresinizin video izlemesini engelledi. Lütfen farklı bir VPN veya vekil sunucuya geçmeyi deneyin.
+  IP block: YouTube, IP adresinizin videoları izlemesini engelledi, veya bu videoda, YouTube'un oturumu kapalı kullanıcılar için erişimini kısıtladığı, reşit olmayan kişilerin yer aldığı içerik bulunabilir. Eğer bu bir IP engeli ise, farklı bir VPN veya vekil sunucu kullanmayı deneyin.
   Unlisted: Listelenmemiş
   AgeRestricted: Yaş sınırlamalı videolar, Google hesabına giriş ve yaş doğrulaması yapılmış bir YouTube hesabının kullanımını gerektirdiği için FreeTube üzerinden izlenemez.
   MembersOnly: Sadece üyelere özel videolar, Google hesabına giriş ve yükleyicinin kanalına ücretli abonelik gerektirdiği için FreeTube üzerinden izlenemez.
@@ -885,6 +904,16 @@ Video:
   Private: Özel videolar, Google ile oturum açma ve videonun sahibi olma gerekliliği nedeniyle FreeTube'da izlenemez.
   Collapse Playlist: Oynatma Listesini Daralt
   Expand Playlist: Oynatma Listesini Genişlet
+  Station: İstasyon
+  Playlist:
+    Unavailable videos are hidden: 1 kullanılamayan video gizlendi | {count} kullanılamayan video gizlendi
+  Premiere: İlk gösterim
+  Enable SponsorBlock on Channel: Kanalda SponsorBlock'u Etkinleştir
+  Disable SponsorBlock on Channel: Kanalda SponsorBlock'u Devre Dışı Bırak
+  AI: YZ
+  'AI: Content was made with AI': 'YZ: İçerik YZ ile yapıldı'
+  How this was made: Nasıl yapıldı
+  Reload Page: Sayfayı Yeniden Yükle
 Playlist:
   #& About
   View Full Playlist: 'Tüm oynatma listesini görüntüle'
@@ -906,6 +935,7 @@ Playlist:
     VideoDurationDescending: Süre (En Uzun)
     PublishedOldest: Yayınlanma Tarihi (En Eski)
     PublishedNewest: Yayınlanma Tarihi (En Yeni)
+  Unavailable videos are hidden: Kullanılamayan videolar gizlendi
 Change Format:
   Change Media Formats: 'Medya Biçimlerini Değiştir'
   Use Dash Formats: 'DASH Biçimlerini Kullan'
@@ -954,6 +984,7 @@ Comments:
   View {replyCount} replies from {channelName} and others: '{channelName} kanalından ve diğerlerinden {replyCount} yanıtı görüntüle'
   Loading replies: Yanıtlar yükleniyor...
   Hide Replies: Yanıtı gizle | Yanıtları gizle
+  Comments are turned off: Yorumlar kapalı
 Up Next: 'Sonraki'
 
 # Toast Messages
@@ -979,7 +1010,7 @@ Tooltips:
     Fetch Feeds from RSS: Etkinleştirildiğinde, FreeTube abonelik akışınızı almak için varsayılan yöntemi yerine RSS kullanacaktır. RSS daha hızlıdır ve IP engellemesini önler, ancak video süresi, canlı durum veya gönderiler gibi belirli bilgileri sağlamaz
     Fetch Automatically: Etkinleştirildiğinde, FreeTube başlangıçta ve yeni bir pencere açıldığında abonelik beslemenizi otomatik olarak getirecektir.
   Player Settings:
-    Default Video Format: Bir video oynatılırken kullanılan biçimleri ayarlayın. DASH biçimleri daha yüksek kalitelerde oynatabilir. Eski biçimler en fazla 360p ile sınırlıdır ancak daha az bant genişliği kullanır. Ses biçimleri yalnızca ses akışlarıdır.
+    Default Media Format: Bir video oynatılırken kullanılan biçimleri ayarlayın. DASH biçimleri daha yüksek kalitelerde oynatabilir. Eski biçimler en fazla 360p ile sınırlıdır ancak daha az bant genişliği kullanır. Ses biçimleri yalnızca ses akışlarıdır.
     Proxy Videos Through Invidious: Videoları sunmak için YouTube ile doğrudan bağlantı kurmak yerine Invidious'a bağlanılacak.
     Scroll Playback Rate Over Video Player: Oynatma hızını denetlemek için, imleç videonun üzerindeyken Ctrl tuşunu (Mac'te Komut tuşu) basılı tutun ve oynatma hızını denetlemek için fare tekerleğini ileri veya geri kaydırın. Öntanımlı oynatma hızına (ayarlarda değiştirilmediği sürece 1x) hızlı bir şekilde dönmek için Ctrl tuşunu (Mac'te Komut tuşu) basılı tutun ve fareye sol tıklayın.
     Skip by Scrolling Over Video Player: MPV'deki gibi videoda atlamak için kaydırma tekerleğini kullanın.
@@ -1000,6 +1031,7 @@ Tooltips:
     Ignore Default Arguments: Harici oynatıcıya video URL'si dışında herhangi bir öntanımlı argüman gönderme (örn. oynatma hızı, oynatma listesi URL'si vb.). Özel argümanlar yine de gönderilecektir.
   Experimental Settings:
     Replace HTTP Cache: Electron'un disk tabanlı HTTP önbelleğini devre dışı bırakır ve özel bir bellek içi resim önbelleğini etkinleştirir. RAM kullanımının artmasına neden olacaktır.
+    Disable Hardware Acceleration: GPU donanım hızlandırmasını devre dışı bırakır. Grafikle ilgili sorunları çözebilir, ancak performansı düşerebilir.
   Distraction Free Settings:
     Hide Channels: Tüm videoların, oynatma listelerinin ve kanalın kendisinin arama, öne çıkanlar, en popüler ve tavsiye edilenlerde görünmesini engellemek için bir kanal kimliği girin. Girilen kanal kimliği tam olarak eşleşmelidir ve büyük/küçük harfe duyarlıdır.
     Hide Subscriptions Live: Bu ayar, "{settingsSection}" bölümünün "{subsection}" kısmında yer alan uygulama genelindeki "{appWideSetting}" ayarı tarafından geçersiz kılınıyor
@@ -1017,6 +1049,8 @@ Default Invidious instance has been set to {instance}: Öntanımlı Invidious ö
 Search Bar:
   Clear Input: Girişi Temizle
   Remove: Kaldır
+  Open Search Container: Arama Alanını Aç
+  Search: Ara
 External link opening has been disabled in the general settings: Harici bağlantı açma genel ayarlarda devre dışı bırakıldı
 Are you sure you want to open this link?: Bu bağlantıyı açmak istediğinizden emin misiniz?
 Screenshot Success: Ekran görüntüsü kaydedildi
@@ -1143,3 +1177,5 @@ Compact side navigation: Yan gezinmeyi daralt
 Expand side navigation: Yan gezinmeyi genişlet
 Screenshot Clipboard Success: Ekran görüntüsü panoya kaydedildi
 Screenshot Clipboard Error: Ekran görüntüsü panoya kopyalanamadı
+SponsorBlock Disabled on Channel: '{channel} için SponsorBlock devre dışı bırakıldı'
+SponsorBlock Enabled on Channel: '{channel} için SponsorBlock etkinleştirildi'

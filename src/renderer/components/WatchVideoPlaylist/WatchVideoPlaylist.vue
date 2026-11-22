@@ -172,6 +172,11 @@
           :initial-visible-state="index < (currentVideoIndexZeroBased + 4) && index > (currentVideoIndexZeroBased - 4)"
           @pause-player="pausePlayer"
         />
+        <p
+          v-if="playlistUnavailableVideoCount > 0"
+        >
+          {{ t('Video.Playlist.Unavailable videos are hidden', { count: playlistUnavailableVideoCount }, playlistUnavailableVideoCount) }}
+        </p>
       </div>
     </div>
   </FtCard>
@@ -189,11 +194,11 @@ import FtListVideoNumbered from '../FtListVideoNumbered/FtListVideoNumbered.vue'
 
 import store from '../../store/index'
 
-import { copyToClipboard, showToast } from '../../helpers/utils'
+import { copyToClipboard, showToast, extractNumberFromString } from '../../helpers/utils'
 import {
   getLocalCachedFeedContinuation,
   getLocalPlaylist,
-  parseLocalPlaylistVideo,
+  parseLocalPlaylistVideos,
   untilEndOfLocalPlayList,
 } from '../../helpers/api/local'
 import { invidiousGetPlaylistInfo, fetchAllInvidiousPlaylistVideos } from '../../helpers/api/invidious'
@@ -235,6 +240,7 @@ const reversePlaylist = ref(false)
 const channelId = ref('')
 const channelName = ref('')
 const playlistTitle = ref('')
+const playlistTotalVideoCount = ref(0)
 const playlistItems = shallowRef([])
 const randomizedPlaylistItems = shallowRef([])
 const showProgressBarPreview = ref(false)
@@ -281,6 +287,8 @@ const currentVideoIndexOneBased = computed(() => currentVideoIndexZeroBased.valu
 const currentVideo = computed(() => playlistItems.value[currentVideoIndexZeroBased.value])
 
 const playlistVideoCount = computed(() => playlistItems.value.length)
+
+const playlistUnavailableVideoCount = computed(() => playlistTotalVideoCount.value - playlistVideoCount.value)
 
 const videoIndexInPlaylistItems = computed(() => {
   const items = shuffleEnabled.value ? randomizedPlaylistItems.value : playlistItems.value
@@ -633,22 +641,23 @@ async function loadCachedPlaylistInformation(cachedPlaylist) {
   store.commit('setCachedPlaylist', null)
 
   playlistTitle.value = cachedPlaylist.title
+  playlistTotalVideoCount.value = cachedPlaylist.totalVideoCount
   channelName.value = cachedPlaylist.channelName
   channelId.value = cachedPlaylist.channelId
 
   const videos = cachedPlaylist.items
   if (!process.env.SUPPORTS_LOCAL_API || backendPreference.value === 'invidious') {
-    const videoCount = cachedPlaylist.videoCount
-    if (videos.length < videoCount) {
-      const remainingVideos = await fetchAllInvidiousPlaylistVideos(cachedPlaylist.id, videos.length)
+    const nextIndex = cachedPlaylist.nextIndex
+    if (nextIndex !== -1) {
+      const remainingVideos = await fetchAllInvidiousPlaylistVideos(cachedPlaylist.id, nextIndex)
       videos.push(...remainingVideos)
     }
   } else if (cachedPlaylist.continuationData !== null) {
     const continuationData = await getLocalCachedFeedContinuation('playlist', cachedPlaylist.continuationData)
-    videos.push(...continuationData.items.map(parseLocalPlaylistVideo))
+    videos.push(...parseLocalPlaylistVideos(continuationData.items))
 
     await untilEndOfLocalPlayList(continuationData, (p) => {
-      videos.push(...p.items.map(parseLocalPlaylistVideo))
+      videos.push(...parseLocalPlaylistVideos(p.items))
     }, { runCallbackOnceFirst: false })
   }
   playlistItems.value = videos
@@ -674,12 +683,13 @@ async function getPlaylistInformationLocal() {
     }
 
     playlistTitle.value = playlist.info.title
+    playlistTotalVideoCount.value = extractNumberFromString(playlist.info.total_items)
     channelName.value = channelName_
     channelId.value = playlist.info.author?.id
 
     const videos = []
     await untilEndOfLocalPlayList(playlist, (p) => {
-      videos.push(...p.items.map(parseLocalPlaylistVideo))
+      videos.push(...parseLocalPlaylistVideos(p.items))
     })
 
     playlistItems.value = videos
@@ -704,14 +714,15 @@ async function getPlaylistInformationInvidious() {
   isLoading.value = true
 
   try {
-    const result = await invidiousGetPlaylistInfo(props.playlistId)
+    const { playlist: result, nextIndex } = await invidiousGetPlaylistInfo(props.playlistId)
 
     playlistTitle.value = result.title
+    playlistTotalVideoCount.value = result.videoCount
     channelName.value = result.author
     channelId.value = result.authorId
 
     const videos = result.videos
-    const remainingVideos = await fetchAllInvidiousPlaylistVideos(result.playlistId, videos.length)
+    const remainingVideos = await fetchAllInvidiousPlaylistVideos(result.playlistId, nextIndex)
     videos.push(...remainingVideos)
 
     playlistItems.value = videos

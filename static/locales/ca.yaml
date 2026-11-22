@@ -188,8 +188,7 @@ Settings:
     Enable Theatre Mode by Default: 'Activa el mode teatre per defecte'
     Default Volume: 'Volum per defecte'
     Default Playback Rate: 'Velocitat de reproducció predeterminada'
-    Default Video Format:
-      Default Video Format: 'Format de vídeo predeterminat'
+    Default Media Format:
       Dash Formats: 'Formats DASH'
       Legacy Formats: 'Formats antics'
       Audio Formats: 'Formats d''àudio'
@@ -255,7 +254,6 @@ Settings:
     Import Playlists: Importa llistes de reproducció
     All playlists has been successfully exported: Totes les llistes de reproducció s'han exportat amb èxit
     Export Playlists: Exporta llistes de reproducció
-    All playlists has been successfully imported: Totes les llistes de reproducció s'han importat amb èxit
   The app needs to restart for changes to take effect. Restart and apply change?: Cal reiniciar l'aplicació perquè els canvis tinguin efecte. Vols reiniciar i aplicar els canvis?
   External Player Settings:
     External Player Settings: Configuració del reproductor extern
@@ -364,7 +362,6 @@ Channel:
   Your search results have returned 0 results: 'Els resultats de la teva cerca han retornat 0 resultats'
   Videos:
     Videos: 'Vídeos'
-    This channel does not currently have any videos: 'Aquest canal no té actualment cap vídeo'
     Sort Types:
       Newest: 'Més Nou'
       Oldest: 'Més Vell'

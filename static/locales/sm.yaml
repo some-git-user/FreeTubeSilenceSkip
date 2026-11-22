@@ -234,8 +234,8 @@ Settings:
     Default Playback Rate: ''
     Max Video Playback Rate: ''
     Video Playback Rate Interval: ''
-    Default Video Format:
-      Default Video Format: ''
+    Default Media Format:
+      Default Media Format: ''
       Dash Formats: ''
       Legacy Formats: ''
       Audio Formats: ''
@@ -355,7 +355,6 @@ Settings:
     All watched history has been successfully imported: ''
     All watched history has been successfully exported: ''
     Playlist insufficient data: ''
-    All playlists has been successfully imported: ''
     All playlists has been successfully exported: ''
     Unable to read file: ''
     Unable to write file: ''
@@ -481,7 +480,6 @@ Channel:
   Channel Tabs: ''
   Videos:
     Videos: ''
-    This channel does not currently have any videos: ''
     Sort Types:
       Newest: ''
       Oldest: ''
@@ -657,7 +655,7 @@ Tooltips:
     External Link Handling: |
   Player Settings:
     Proxy Videos Through Invidious: ''
-    Default Video Format: ''
+    Default Media Format: ''
     Scroll Playback Rate Over Video Player: ''
     Skip by Scrolling Over Video Player: ''
   External Player Settings:

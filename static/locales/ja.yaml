@@ -85,6 +85,7 @@ Search Filters:
     Location: 場所
     360 Video: 360° 動画
   Clear Filters: フィルターをクリア
+  No results found: 結果が見つかりませんでした。別のキーワードを試すか、検索条件を変更してください
 Subscriptions:
     # On Subscriptions Page
   Subscriptions: '登録チャンネル'
@@ -192,6 +193,7 @@ User Playlists:
   Export list of URLs: URL のリストをエクスポート
   Move Video to the Top: 動画を一番上に移動
   Move Video to the Bottom: 動画を一番下に移動
+  This playlist is private or does not exist.: このプレイリストは非公開であるか、存在しません。
 History:
   # On History Page
   History: '履歴'
@@ -378,11 +380,11 @@ Settings:
     Enable Theatre Mode by Default: 'デフォルトでシアターモードを有効にする'
     Default Volume: 'デフォルトの音量'
     Default Playback Rate: 'デフォルトの再生速度'
-    Default Video Format:
-      Default Video Format: '動画形式の設定'
+    Default Media Format:
       Dash Formats: 'DASH 形式'
       Legacy Formats: '旧形式'
       Audio Formats: '音声形式'
+      Default Media Format: 既定のメディア形式
     Default Quality:
       Default Quality: '動画品質の設定'
       Auto: '自動'
@@ -488,7 +490,6 @@ Settings:
     Data Settings: データ
     Manage Subscriptions: 登録チャンネルの管理
     Playlist insufficient data: 再生リスト「{playlist}」のデータが不十分なため、項目をスキップします
-    All playlists has been successfully imported: すべての再生リストが正常にインポートされました
     All playlists has been successfully exported: すべての再生リストが正常にエクスポートされました
     Import Playlists: 再生リストのインポート
     Export Playlists: 再生リストのエクスポート
@@ -513,6 +514,7 @@ Settings:
     Setting object has insufficient data, skipping item: 設定オブジェクトのデータが不十分です。この項目をスキップします
     Unknown setting key: '不明な設定キー : {key}'
     Non-transferable setting key: '転送できない設定キー : {key}'
+    Playlists have been successfully imported: 1/{total} プレイリストのインポートに成功しました | {count}/{total} プレイリストのインポートに成功しました
   Distraction Free Settings:
     Hide Live Chat: ライブチャットの非表示
     Hide Popular Videos: 人気動画の非表示
@@ -561,6 +563,10 @@ Settings:
     Hide Channel Courses: チャンネルの「コース」タブを非表示
     Hide Channel Posts: チャンネルの「投稿」タブを非表示
     Hide Subscriptions Posts: 登録チャンネルの投稿を非表示
+    Add: 追加
+    Remove: 削除
+    Hide Channel Shows: 「番組」タブを非表示にする
+    More Items Count: +{count} 件以上…
   The app needs to restart for changes to take effect. Restart and apply change?: 変更の反映には、アプリの再起動が必要です。再起動して変更を適用しますか？
   Proxy Settings:
     Error getting network information. Is your proxy configured properly?: ネットワーク情報の取得中にエラーが発生しました。プロキシーを正しく設定してますか?
@@ -594,6 +600,10 @@ Settings:
     UseDeArrowTitles: DeArrow の動画タイトルを使用する
     UseDeArrowThumbnails: DeArrow のサムネイルを使用する
     'DeArrow Thumbnail Generator API Url (Default is https://dearrow-thumb.ajay.app)': DeArrow Thumbnail Generator API Url (デフォルト https://dearrow-thumb.ajay.app)
+    Excluded Channels:
+      Disabled Message: 一部のチャンネルは ID に基づいて除外され、処理されませんでした。それらの ID の更新中は、この機能は利用できません
+      Excluded Channels: 除外されたチャネル
+      Tooltip: SponsorBlock を無効にするチャンネル ID を入力してください。このチャンネルの動画に含まれるスポンサーセグメントはスキップされなくなります。入力するチャンネル ID は完全に一致している必要があり、大文字と小文字が区別されます。
   External Player Settings:
     Custom External Player Arguments: カスタム外部プレーヤー引数
     Custom External Player Executable: カスタム外部プレーヤーの実行可能ファイル
@@ -615,6 +625,7 @@ Settings:
     Replace HTTP Cache: HTTP キャッシュの置換
     Experimental Settings: 試験的
     Warning: これらの設定は実験的なものであり、有効にするとアプリのクラッシュを引き起こす恐れがあります。バックアップをとっておくことを強くお勧めします。自己責任で使用してください！
+    Disable Hardware Acceleration: ハードウェアアクセラレーションを無効にする
   Password Settings:
     Password Settings: パスワード
     Set Password To Prevent Access: 設定にアクセスするためのパスワードの設定
@@ -625,6 +636,9 @@ Settings:
     Password: パスワード
   Sort Settings Sections (A-Z): 設定項目の並べ替え（A-Z）
   Return to Settings Menu: 設定に戻る
+  Search Settings: 設定の検索
+  Settings found: 1件の設定が見つかりました | {count} 件の設定が見つかりました
+  No Matching Settings: 検索条件に一致する設定はありません。
 About:
   #On About page
   About: 'FreeTube について'
@@ -660,11 +674,11 @@ Channel:
   Your search results have returned 0 results: '検索結果が0件です'
   Videos:
     Videos: '動画'
-    This channel does not currently have any videos: 'このチャンネルには動画がありません'
     Sort Types:
       Newest: '新しい'
       Oldest: '古い'
       Most Popular: '人気'
+    This channel has videos but none could be displayed, try fetching more: このチャンネルには動画がありますが、表示できるものがありません。さらに読み込んでみてください
   Playlists:
     Playlists: '再生リスト'
     This channel does not currently have any playlists: 'このチャンネルには再生リストがありません'
@@ -682,6 +696,7 @@ Channel:
     Details: 詳細
     Joined: 参加日
     Location: 場所
+    Links: リンク
   Added channel to your subscriptions: チャンネルを登録しました
   Channel has been removed from your subscriptions: チャンネルがあなたの登録チャンネルから削除されました
   Removed subscription from {count} other channel(s): ほかの {count} チャンネルから登録を削除しました
@@ -715,6 +730,9 @@ Channel:
     Courses: コース
     This channel does not currently have any courses: このチャンネルには現在コースはありません
   View All: すべて表示
+  Shows:
+    Shows: 番組
+    This channel does not currently have any shows: このチャンネルには現在、番組がありません
 Video:
   Open in YouTube: 'YouTube で表示'
   Copy YouTube Link: 'YouTube リンクのコピー'
@@ -816,7 +834,7 @@ Video:
     Show Stats: 統計を表示
     Autoplay is off: 自動再生 オフ
     Autoplay is on: 自動再生 オン
-  IP block: YouTube はあなたのIPアドレスからの動画視聴をブロックしました。別の VPN またはプロキシに切り替えてみてください。
+  IP block: YouTube により、お使いの IP アドレスからの動画視聴がブロックされているか、またはこの動画には、ログインしていないユーザーへのアクセスを YouTube が制限している未成年者が登場するコンテンツが含まれている可能性があります。IP ブロックによるものである場合は、別の VPN やプロキシに切り替えてみてください。
   Unlisted: 限定公開
   MembersOnly: メンバー限定動画は Google にログインし、投稿チャンネルに課金する必要があるので FreeTube から直接見ることはできません。
   AgeRestricted: 年齢制限がかかっている 動画 は Google にログインしておりかつ年齢確認を済ましている YouTube アカウントが必要なため、FreeTube から直接見ることはできません。
@@ -834,6 +852,16 @@ Video:
   Private: 非公開動画は、Googleアカウントでのログインと動画の所有権が必要なため、FreeTubeでは視聴できません。
   Collapse Playlist: プレイリストを折りたたむ
   Expand Playlist: プレイリストを展開する
+  Station: 局
+  Playlist:
+    Unavailable videos are hidden: 再生できない動画が 1 件非表示になっています | 再生できない動画が {count} 件非表示になっています
+  Premiere: プレミア
+  Enable SponsorBlock on Channel: チャンネルで SponsorBlock を有効にする
+  Disable SponsorBlock on Channel: チャンネルで SponsorBlock を無効にする
+  AI: AI
+  'AI: Content was made with AI': 'AI : このコンテンツは AI によって作成されました'
+  How this was made: 制作過程
+  Reload Page: ページを再読み込み
 Playlist:
   #& About
   View Full Playlist: '完全な再生リストの表示'
@@ -855,6 +883,7 @@ Playlist:
     VideoDurationDescending: 再生時間（長い順）
     PublishedNewest: 公開日（新しい順）
     PublishedOldest: 公開日（古い順）
+  Unavailable videos are hidden: 再生できない動画は非表示になっています
 Change Format:
   Change Media Formats: '動画形式の変更'
   Use Dash Formats: 'DASH 形式の使用'
@@ -902,6 +931,7 @@ Comments:
   View 1 reply from {channelName}: '{channelName} からの 1 件の返信を見る'
   View {replyCount} replies from {channelName} and others: '{channelName} や他のユーザーからの {replyCount} 件の返信を見る'
   Loading replies: 返信を読み込み中...
+  Comments are turned off: コメントは無効になっています
 Up Next: '次の動画'
 
 # Toast Messages
@@ -962,6 +992,7 @@ Profile:
   Edit Profile Name: プロファイル名を編集
   Close Profile Dropdown: プロフィールドロップダウンを閉じる
   Open Profile Dropdown: プロフィールドロップダウンを開く
+  Go To Profile Manager: プロファイルマネージャーに移動
 The playlist has been reversed: 再生リストを逆順にしました
 Download From Site: サイトからダウンロード
 Version {versionNumber} is now available!  Click for more details: 最新バージョン {versionNumber} が利用可能！　詳細はこちらをクリック
@@ -971,7 +1002,7 @@ Tooltips:
     Fetch Feeds from RSS: 有効にすると、FreeTube は通常の方法の代わりに RSS を使用して購読フィードを取得します。RSS は高速で IP ブロックを防ぎますが、動画の長さやライブ配信などの情報は提供されません
     Fetch Automatically: 有効にすると、FreeTube は起動時や新しいウィンドウを開いたときに自動的に登録チャンネルフィードを取得します。
   Player Settings:
-    Default Video Format: 動画を再生する際に使用する形式を設定します。DASH形式はより高い画質で再生できます。旧形式は最大360pに制限されますが、帯域幅の使用量が少なくなります。音声形式は音声のみです。
+    Default Media Format: 動画を再生する際に使用する形式を設定します。DASH形式はより高い画質で再生できます。旧形式は最大360pに制限されますが、帯域幅の使用量が少なくなります。音声形式は音声のみです。
     Proxy Videos Through Invidious: YouTube に直接接続するのではなく、Invidious を通じて動画を提供します。
     Scroll Playback Rate Over Video Player: カーソルが動画上にあるとき、Ctrl キー（Mac では Command キー）を押したまま、マウスホイールを前後にスクロールして再生速度を調整します。Control キー（Mac では Command キー）を押したままマウスを左クリックすると、すぐにデフォルトの再生速度（設定を変更していない場合は 1 x）に戻ります。
     Skip by Scrolling Over Video Player: MPVスタイルでスクロールホイールを使って動画をスキップします。
@@ -992,6 +1023,7 @@ Tooltips:
     Ignore Default Arguments: 動画の URL 以外のデフォルトの引数（再生速度、再生リストの URL など）を外部プレーヤーに送信しないでください。カスタム引数はそのまま引き継がれます。
   Experimental Settings:
     Replace HTTP Cache: Electron のディスクに基づく HTTP キャッシュを無効化し、メモリ内で独自の画像キャッシュを使用します。このことにより RAM の使用率は増加します。
+    Disable Hardware Acceleration: GPU ハードウェアアクセラレーションを無効にします。グラフィック関連の問題が解決する可能性がありますが、パフォーマンスは低下する傾向があります。
   Distraction Free Settings:
     Hide Channels: チャンネル ID を入力すると、すべての動画、再生リスト、チャンネル自体が検索や人気、およびおすすめに表示されなくなります。入力するチャンネル ID は、大文字と小文字を区別するので完全に一致させてください。
     Hide Subscriptions Live: この設定は、アプリ全体の "{appWideSetting}" 設定により上書きされます。"{settingsSection}" 項目の "{subsection}" にあります
@@ -1010,6 +1042,8 @@ External link opening has been disabled in the general settings: 一般設定で
 Search Bar:
   Clear Input: 入力の消去
   Remove: 削除
+  Open Search Container: 検索コンテナを開く
+  Search: 検索
 Are you sure you want to open this link?: このリンクを開きますか？
 Channels:
   Channels: チャンネル
@@ -1135,3 +1169,5 @@ Compact side navigation: サイドナビゲーションを折りたたむ
 Expand side navigation: サイドナビゲーションを展開
 Screenshot Clipboard Success: スクリーンショットをクリップボードに保存しました
 Screenshot Clipboard Error: スクリーンショットのクリップボードへのコピーに失敗しました
+SponsorBlock Disabled on Channel: '{channel} で SponsorBlock が無効化されました'
+SponsorBlock Enabled on Channel: '{channel} で SponsorBlock が有効になりました'

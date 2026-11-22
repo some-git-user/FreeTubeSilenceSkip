@@ -4,7 +4,7 @@
 
 FreeTube is an open source desktop YouTube player built with privacy in mind.
 Use YouTube without advertisements and prevent Google from tracking you with their cookies and JavaScript.
-Available for Windows (10 and later), Mac (macOS 12 and later) & Linux thanks to Electron.
+Available for Windows (10 and later), Mac (macOS 13 and later) & Linux thanks to Electron.
 
 <p align="center"><a href="https://github.com/FreeTubeApp/FreeTube/releases">Download FreeTube</a></p>
 <p align="center">
@@ -100,7 +100,7 @@ RedirectTube, doesn’t automatically open YouTube links in FreeTube (although t
 ### Official Downloads
 
 > [!CAUTION]
-> FreeTube is only supported on Windows 10 and later, macOS 12 and above, and various Linux distributions. Installing it on unsupported systems may result in unexpected issues.
+> FreeTube is only supported on Windows 10 and later, macOS 13 and above, and various Linux distributions. Installing it on unsupported systems may result in unexpected issues.
 
 * [GitHub Releases](https://github.com/FreeTubeApp/FreeTube/releases)
 
@@ -146,7 +146,7 @@ We are actively looking for translations!  We use [Weblate](https://hosted.webla
 For the Linux Flatpak, the desktop entry comment string can be translated at our [Flatpak repository](https://github.com/flathub/io.freetubeapp.FreeTube/blob/master/io.freetubeapp.FreeTube.desktop).
 
 ## Contact
-If you ever have any questions, feel free to ask it on our [Discussions](https://github.com/FreeTubeApp/FreeTube/discussions) page.  Alternatively, you can join our [Matrix Room](https://matrix.to/#/#freetube:matrix.org).  
+If you ever have any questions, feel free to ask it on our [Discussions](https://github.com/FreeTubeApp/FreeTube/discussions) page.  Alternatively, you can join our [Matrix Space](https://matrix.to/#/#freetubeapp:matrix.org).  
 
 > [!IMPORTANT]
 > Don't forget to check out the [rules](https://docs.freetubeapp.io/community/matrix/) before joining.

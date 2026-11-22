@@ -322,8 +322,8 @@ Settings:
     Default Playback Rate: ''
     Max Video Playback Rate: ''
     Video Playback Rate Interval: ''
-    Default Video Format:
-      Default Video Format: ''
+    Default Media Format:
+      Default Media Format: ''
       Dash Formats: ''
       Legacy Formats: ''
       Audio Formats: ''
@@ -460,7 +460,6 @@ Settings:
     All watched history has been successfully imported: ''
     All watched history has been successfully exported: ''
     Playlist insufficient data: ''
-    All playlists has been successfully imported: 'گشت پێڕستەکانی لێدان بەڕێکی هاوردران'
     All playlists has been successfully exported: 'هەموو پێڕستەکانی لێدان بەڕێکی هەناردران'
     Unable to read file: ''
     Unable to write file: ''
@@ -591,7 +590,6 @@ Channel:
   Channel Tabs: ''
   Videos:
     Videos: 'ڤیدیۆکان'
-    This channel does not currently have any videos: 'ئەم کەناڵە ئێستا هیچ ڤیدیۆیەکی نییە'
     Sort Types:
       Newest: 'نوێترین'
       Oldest: 'کۆنترین'
@@ -777,7 +775,7 @@ Tooltips:
     External Link Handling: |
   Player Settings:
     Proxy Videos Through Invidious: ''
-    Default Video Format: ''
+    Default Media Format: ''
     Scroll Playback Rate Over Video Player: ''
     Skip by Scrolling Over Video Player: ''
   External Player Settings:

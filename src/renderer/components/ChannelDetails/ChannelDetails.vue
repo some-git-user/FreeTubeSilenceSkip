@@ -157,6 +157,22 @@
           </div>
           <!-- eslint-disable-next-line vuejs-accessibility/interactive-supports-focus -->
           <div
+            v-if="visibleTabs.includes('shows')"
+            id="showsTab"
+            class="tab"
+            role="tab"
+            :aria-selected="currentTab === 'shows'"
+            aria-controls="showsPanel"
+            :tabindex="currentTab === 'shows' ? 0 : -1"
+            :class="{ selectedTab: currentTab === 'shows' }"
+            @click="changeTab('shows')"
+            @keydown.left.right="focusTab('shows', $event)"
+            @keydown.enter.space.prevent="changeTab('shows')"
+          >
+            {{ $t("Channel.Shows.Shows") }}
+          </div>
+          <!-- eslint-disable-next-line vuejs-accessibility/interactive-supports-focus -->
+          <div
             v-if="visibleTabs.includes('podcasts')"
             id="podcastsTab"
             class="tab"
@@ -240,6 +256,7 @@
           v-if="showSearchBar"
           ref="searchBar"
           :placeholder="$t('Channel.Search Channel')"
+          :action-button-label="$t('Search Bar.Search')"
           :value="query"
           :show-clear-text-button="true"
           class="channelSearch"
@@ -263,7 +280,7 @@ import FtInput from '../FtInput/FtInput.vue'
 
 import store from '../../store/index'
 
-import { ctrlFHandler, formatNumber } from '../../helpers/utils'
+import { ctrlFHandler, formatSubscriberCount } from '../../helpers/utils'
 
 const props = defineProps({
   id: {
@@ -337,7 +354,7 @@ const formattedSubCount = computed(() => {
   if (hideChannelSubscriptions.value) {
     return null
   }
-  return formatNumber(props.subCount)
+  return formatSubscriberCount(props.subCount)
 })
 
 function subscribed() {

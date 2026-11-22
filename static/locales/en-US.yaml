@@ -59,6 +59,8 @@ Search / Go to URL: Search / Go to URL
 Search Bar:
   Clear Input: Clear Input
   Remove: Remove
+  Open Search Container: Open Search Container
+  Search: Search
 Search character limit: Search query is over the {searchCharacterLimit} character limit
 Search Listing:
   Label:
@@ -114,6 +116,7 @@ Search Filters:
   Search Results: Search Results
   Fetching results. Please wait: Fetching results. Please wait
   Fetch more results: Fetch more results
+  No results found: No results found. Try different keywords or adjust search filters
   There are no more results for this search: There are no more results for this search
   Clear Filters: Clear Filters
 # Sidebar
@@ -126,7 +129,7 @@ Subscriptions:
     profile has a large number of subscriptions.  Forcing RSS to avoid rate limiting
   'Your Subscription list is currently empty. Start adding subscriptions to see them here.': Your Subscription list is currently empty. If you want to import your subscriptions you can go to Data Settings and select Import Subscriptions or you can search for a channel and subscribe to them.
   Disabled Automatic Fetching: You have disabled automatic subscription fetching. Refresh subscriptions to see them here.
-  Empty Channels: Your subscribed channels currently does not have any videos.
+  Empty Channels: Your subscribed channels currently do not have any videos.
   Empty Posts: Your subscribed channels currently do not have any posts.
   Load More Videos: Load More Videos
   Load More Posts: Load More Posts
@@ -159,6 +162,7 @@ User Playlists:
   Search bar placeholder: Search for Playlists
   Playlists with Matching Videos: Playlists with Matching Videos
 
+  This playlist is private or does not exist.: This playlist is private or does not exist.
   This playlist currently has no videos.: This playlist currently has no videos.
 
   Create New Playlist: Create New Playlist
@@ -269,6 +273,9 @@ History:
 Settings:
   # On Settings Page
   Settings: Settings
+  Search Settings: Search Settings
+  Settings found: '1 setting found | {count} settings found'
+  No Matching Settings: No settings match your search.
   Sort Settings Sections (A-Z): Sort Settings Sections (A-Z)
   Return to Settings Menu: Return to Settings Menu
   The app needs to restart for changes to take effect. Restart and apply change?: The
@@ -466,8 +473,8 @@ Settings:
     Default Playback Rate: Default Playback Rate
     Max Video Playback Rate: Max Video Playback Rate
     Video Playback Rate Interval: Video Playback Rate Interval
-    Default Video Format:
-      Default Video Format: Default Video Format
+    Default Media Format:
+      Default Media Format: Default Media Format
       Dash Formats: DASH Formats
       Legacy Formats: Legacy Formats
       Audio Formats: Audio Formats
@@ -587,6 +594,7 @@ Settings:
     Hide Channel Podcasts: Hide Channel "Podcasts" Tab
     Hide Channel Releases: Hide Channel "Releases" Tab
     Hide Channel Courses: Hide Channel "Courses" Tab
+    Hide Channel Shows: Hide Channel "Shows" Tab
     Hide Videos, Playlists and Channels Containing Text: Hide Videos, Playlists and Channels Containing Text
     Hide Videos, Playlists and Channels Containing Text Placeholder: Word, Word Fragment, or Phrase
     Hide Subscriptions Videos: Hide Subscriptions Videos
@@ -594,6 +602,9 @@ Settings:
     Hide Subscriptions Live: Hide Subscriptions Live
     Hide Subscriptions Posts: Hide Subscriptions Posts
     Show Added Items: Show Added Items
+    Add: Add
+    Remove: Remove
+    More Items Count: '+{count} more…'
   Data Settings:
     Data Settings: Data
     Select Export Type: Select Export Type
@@ -634,8 +645,7 @@ Settings:
     All watched history has been successfully exported: All watched history has been
       successfully exported
     Playlist insufficient data: Insufficient data for "{playlist}" playlist, skipping item
-    All playlists has been successfully imported: All playlists has been
-      successfully imported
+    Playlists have been successfully imported: 1/{total} playlist has been successfully imported | {count}/{total} playlists have been successfully imported
     All playlists has been successfully exported: All playlists has been
       successfully exported
     All search history has been successfully imported: All search history has been
@@ -686,6 +696,11 @@ Settings:
       Prompt To Skip: Prompt To Skip
       Do Nothing: Do Nothing
     Category Color: Category Color
+    Excluded Channels:
+      Disabled Message: Some channels were excluded using ID and weren't processed. Feature is blocked while those IDs are updating
+      Excluded Channels: Excluded Channels
+      Tooltip: Enter a channel ID to have SponsorBlock disabled. Sponsor segments in videos from this channel won't be skipped.
+        The channel ID entered must be a complete match and is case sensitive.
   Parental Control Settings:
     Parental Control Settings: Parental Control
     Hide Unsubscribe Button: Hide Unsubscribe Button
@@ -697,6 +712,7 @@ Settings:
     Experimental Settings: Experimental
     Warning: These settings are experimental, they may cause crashes while enabled. Making backups is highly recommended. Use at your own risk!
     Replace HTTP Cache: Replace HTTP Cache
+    Disable Hardware Acceleration: Disable Hardware Acceleration
   Password Dialog:
     Password: Password
     Enter Password To Unlock: Enter password to unlock settings
@@ -779,6 +795,7 @@ Profile:
     from any other profile.
   Close Profile Dropdown: Close Profile Dropdown
   Open Profile Dropdown: Open Profile Dropdown
+  Go To Profile Manager: Go to Profile Manager
 #On Channel Page
 Channel:
   Subscribe: Subscribe
@@ -797,8 +814,7 @@ Channel:
   View All: View All
   Videos:
     Videos: Videos
-    This channel does not currently have any videos: This channel does not currently
-      have any videos
+    This channel has videos but none could be displayed, try fetching more: This channel has videos but none could be displayed, try fetching more
     Sort Types:
       Newest: Newest
       Oldest: Oldest
@@ -829,6 +845,9 @@ Channel:
   Courses:
     Courses: Courses
     This channel does not currently have any courses: This channel does not currently have any courses
+  Shows:
+    Shows: Shows
+    This channel does not currently have any shows: This channel does not currently have any shows
   About:
     About: About
     Channel Description: Channel Description
@@ -839,6 +858,7 @@ Channel:
     Joined: Joined
     Location: Location
     Featured Channels: Featured Channels
+    Links: Links
   Posts:
     This channel currently does not have any posts: This channel currently does not have any posts
     votes: '{votes} votes'
@@ -847,7 +867,7 @@ Channel:
     Hide Answers: Hide Answers
     Video hidden by FreeTube: Video hidden by FreeTube
 Video:
-  IP block: 'YouTube has blocked your IP address from watching videos. Please try switching to a different VPN or proxy.'
+  IP block: 'YouTube has blocked your IP address from watching videos, or this video may contain content featuring minors that YouTube restricts access to for signed-out users. If this is an IP block, try switching to a different VPN or proxy.'
   MembersOnly: Members-only videos cannot be watched with FreeTube as they require Google login and paid membership to the uploader's channel.
   AgeRestricted: Age-restricted videos cannot be watched with FreeTube as they require Google login and using an age-verified YouTube account.
   DRMProtected: DRM protected videos cannot be played in FreeTube, as they require proprietary, closed source components. If you want to watch this video please watch it on the official YouTube website in a DRM enabled web browser.
@@ -874,6 +894,8 @@ Video:
   Copy Invidious Channel Link: Copy Invidious Channel Link
   Hide Channel: Hide Channel
   Unhide Channel: Show Channel
+  Enable SponsorBlock on Channel: Enable SponsorBlock on Channel
+  Disable SponsorBlock on Channel: Disable SponsorBlock on Channel
   Views: Views
   Loop Playlist: Loop Playlist
   Shuffle Playlist: Shuffle Playlist
@@ -890,6 +912,11 @@ Video:
   Premieres: Premieres
   Upcoming: Upcoming
   Unlisted: Unlisted
+  AI: AI
+  'AI: Content was made with AI': 'AI: Content was made with AI'
+  How this was made: How this was made
+  Station: Station
+  Premiere: Premiere
   Live: Live
   Live Now: Live Now
   Live Chat: Live Chat
@@ -910,6 +937,7 @@ Video:
   Published on: Published on
   Streamed on: Streamed on
   Started streaming on: Started streaming on
+  Reload Page: Reload Page
   DeArrow:
     Show Original Details: Show Original Details
     Show Modified Details: Show Modified Details
@@ -969,12 +997,15 @@ Video:
   Watch:
     'Remaining preroll-ad time: {remindingTimeSeconds}s': 'Remaining preroll-ad time: {remindingTimeSeconds}s'
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Remaining SABR backoff time: {remindingTimeSeconds}s'
+  Playlist:
+    Unavailable videos are hidden: 1 unavailable video is hidden | {count} unavailable videos are hidden
 #& Playlists
 Playlist:
   #& About
   Playlist: Playlist
   View Full Playlist: View Full Playlist
   Last Updated On: Last Updated On
+  Unavailable videos are hidden: Unavailable videos are hidden
   Sort By:
     DateAddedNewest: Date added (Newest)
     DateAddedOldest: Date added (Oldest)
@@ -1044,6 +1075,7 @@ Comments:
   There are no comments available for this video: There are no comments available
     for this video
   There are no comments available for this post: There are no comments available for this post
+  Comments are turned off: Comments are turned off
   Load More Comments: Load More Comments
   Pinned by: Pinned by
   Member: Member
@@ -1078,7 +1110,7 @@ Tooltips:
   Player Settings:
     Proxy Videos Through Invidious: Will connect to Invidious to serve videos instead
       of making a direct connection to YouTube.
-    Default Video Format: Set the formats used when a video plays. DASH formats can
+    Default Media Format: Set the formats used when a video plays. DASH formats can
       play higher qualities. Legacy formats are limited to a max of 360p but use less
       bandwidth. Audio formats are audio only streams.
     Scroll Playback Rate Over Video Player: While the cursor is over the video, press and
@@ -1113,6 +1145,7 @@ Tooltips:
       your subscription feed on startup and when a new window is opened.
   Experimental Settings:
     Replace HTTP Cache: Disables Electron's disk based HTTP cache and enables a custom in-memory image cache. Will lead to increased RAM usage.
+    Disable Hardware Acceleration: Disables GPU hardware acceleration. May fix graphical issues, but will probably perform worse.
   SponsorBlock Settings:
     UseDeArrowTitles: Replace video titles with user-submitted titles from DeArrow.
     UseDeArrowThumbnails: Replace video thumbnails with thumbnails from DeArrow.
@@ -1151,6 +1184,8 @@ Screenshot Error: Screenshot failed. {error}
 Screenshot Clipboard Error: Screenshot copy to clipboard failed
 Channel Hidden: '{channel} added to channel filter'
 Channel Unhidden: '{channel} removed from channel filter'
+SponsorBlock Disabled on Channel: 'SponsorBlock disabled on {channel}'
+SponsorBlock Enabled on Channel: 'SponsorBlock enabled on {channel}'
 Trimmed input must be at least N characters long: Trimmed input must be at least 1 character long | Trimmed input must be at least {length} characters long
 Tag already exists: '"{tagName}" tag already exists'
 

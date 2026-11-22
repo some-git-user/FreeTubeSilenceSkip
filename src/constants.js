@@ -11,7 +11,6 @@ const IpcChannels = {
   NATIVE_THEME_UPDATE: 'native-theme-update',
   APP_READY: 'app-ready',
   RELAUNCH_REQUEST: 'relaunch-request',
-  SET_WINDOW_TITLE: 'set-window-title',
 
   SEARCH_INPUT_HANDLING_READY: 'search-input-handling-ready',
   UPDATE_SEARCH_INPUT_TEXT: 'update-search-input-text',
@@ -35,6 +34,9 @@ const IpcChannels = {
 
   GET_REPLACE_HTTP_CACHE: 'get-replace-http-cache',
   TOGGLE_REPLACE_HTTP_CACHE: 'toggle-replace-http-cache',
+
+  GET_DISABLE_HARDWARE_ACCELERATION: 'get-disable-hardware-acceleration',
+  TOGGLE_DISABLE_HARDWARE_ACCELERATION: 'toggle-disable-hardware-acceleration',
 
   PLAYER_CACHE_GET: 'player-cache-get',
   PLAYER_CACHE_SET: 'player-cache-set',
@@ -300,6 +302,12 @@ const DARK_BASE_THEMES = [
   'solarizedDark',
 ]
 
+const UI_SCALE = {
+  MIN: 50,
+  MAX: 300,
+  STEP: 5,
+}
+
 export {
   IpcChannels,
   DBActions,
@@ -317,4 +325,5 @@ export {
   ABOUT_BITCOIN_ADDRESS,
   LIGHT_BASE_THEMES,
   DARK_BASE_THEMES,
+  UI_SCALE,
 }

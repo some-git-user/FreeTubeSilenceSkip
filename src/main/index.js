@@ -2,7 +2,7 @@ import {
   app, BrowserWindow, dialog, Menu, ipcMain,
   powerSaveBlocker, screen, session, shell,
   nativeTheme, net, protocol, clipboard,
-  Tray
+  Tray, ClipboardItem,
 } from 'electron'
 import path from 'path'
 import cp from 'child_process'
@@ -16,6 +16,7 @@ import {
   SEARCH_CHAR_LIMIT,
   LIGHT_BASE_THEMES,
   DARK_BASE_THEMES,
+  UI_SCALE,
 } from '../constants'
 import * as baseHandlers from '../datastores/handlers/base'
 import { extractExpiryTimestamp, ImageCache } from './ImageCache'
@@ -138,12 +139,17 @@ function runApp() {
         }
       }
 
-      const copy = (url) => {
+      const copy = async (url) => {
         if (parameters.linkText) {
-          clipboard.write({
-            bookmark: parameters.linkText,
-            text: url
-          })
+          await clipboard.write([
+            new ClipboardItem({
+              'text/plain': url,
+              'electron application/bookmark': {
+                title: parameters.linkText,
+                url,
+              },
+            })
+          ])
         } else {
           clipboard.writeText(url)
         }
@@ -223,22 +229,22 @@ function runApp() {
         {
           label: 'Copy Lin&k',
           visible: visible && !isInAppUrl,
-          click: () => {
-            copy(parameters.linkURL)
+          click: async () => {
+            await copy(parameters.linkURL)
           }
         },
         {
           label: 'Copy YouTube Link',
           visible: visible && isInAppUrl,
-          click: () => {
-            copy(transformURL(true))
+          click: async () => {
+            await copy(transformURL(true))
           }
         },
         {
           label: 'Copy Invidious Link',
           visible: visible && isInAppUrl && (backendPreference === 'invidious' || backendFallback),
-          click: () => {
-            copy(transformURL(false))
+          click: async () => {
+            await copy(transformURL(false))
           }
         },
         // Only show search in new window for
@@ -306,6 +312,12 @@ function runApp() {
     // we've got a custom image cache to make up for disabling the http cache
     // experimental as it increases RAM use in favour of reduced disk use
     app.commandLine.appendSwitch('disable-http-cache')
+  }
+
+  const DISABLE_HARDWARE_ACCELERATION_PATH = `${userDataPath}/experiment-disable-hardware-acceleration`
+  const disableHardwareAcceleration = existsSync(DISABLE_HARDWARE_ACCELERATION_PATH)
+  if (disableHardwareAcceleration) {
+    app.commandLine.appendSwitch('disable-gpu')
   }
 
   const PLAYER_CACHE_PATH = `${userDataPath}/player_cache`
@@ -602,9 +614,14 @@ function runApp() {
         requestHeaders['Sec-Fetch-Mode'] = 'navigate'
         requestHeaders['Sec-Fetch-Site'] = 'none'
         requestHeaders['Sec-Fetch-User'] = '?1'
-        requestHeaders.Cookie = requestHeaders.Cookie
-          ? requestHeaders.Cookie + `;PREF=tz=${Intl.DateTimeFormat().resolvedOptions().timeZone.replace('/', '.')}`
-          : ''
+
+        if (requestHeaders['X-Cookie']) {
+          requestHeaders.Cookie = requestHeaders.Cookie
+            ? requestHeaders.Cookie + ';' + requestHeaders['X-Cookie']
+            : requestHeaders['X-Cookie']
+
+          delete requestHeaders['X-Cookie']
+        }
       } else if (url === 'https://www.youtube.com/sw.js_data' || url.startsWith('https://www.youtube.com/api/timedtext')) {
         requestHeaders.Referer = 'https://www.youtube.com/sw.js'
         requestHeaders['Sec-Fetch-Site'] = 'same-origin'
@@ -642,7 +659,8 @@ function runApp() {
       urls: [
         'https://www.youtube.com/sw.js_data',
         'https://www.youtube.com/iframe_api',
-        'https://www.youtube.com/watch?*'
+        'https://www.youtube.com/watch?*',
+        'https://www.youtube.com/',
       ]
     }
 
@@ -1100,16 +1118,7 @@ function runApp() {
 
       newWindow.on('minimize', () => {
         if (trayOnMinimize) {
-          // Workaround for https://github.com/electron/electron/issues/49253
-          if (process.platform === 'linux') {
-            setTimeout(() => {
-              newWindow.restore()
-              newWindow.hide()
-            }, 100)
-          } else {
-            newWindow.hide()
-          }
-
+          newWindow.hide()
           manageTray(newWindow)
 
           if (newWindow === mainWindow) {
@@ -1250,12 +1259,6 @@ function runApp() {
         mainWindow.webContents.send(IpcChannels.OPEN_URL, startupUrl)
       }
       startupUrl = null
-    }
-  })
-
-  ipcMain.on(IpcChannels.SET_WINDOW_TITLE, (event, title) => {
-    if (isFreeTubeUrl(event.senderFrame.url) && typeof title === 'string') {
-      BrowserWindow.fromWebContents(event.sender)?.setTitle(title)
     }
   })
 
@@ -1591,6 +1594,28 @@ function runApp() {
     } else {
       // create an empty file
       const handle = await asyncFs.open(REPLACE_HTTP_CACHE_PATH, 'w')
+      await handle.close()
+    }
+
+    relaunch()
+  })
+
+  ipcMain.handle(IpcChannels.GET_DISABLE_HARDWARE_ACCELERATION, (event) => {
+    if (isFreeTubeUrl(event.senderFrame.url)) {
+      return disableHardwareAcceleration
+    }
+  })
+
+  ipcMain.once(IpcChannels.TOGGLE_DISABLE_HARDWARE_ACCELERATION, async (event) => {
+    if (!isFreeTubeUrl(event.senderFrame.url)) {
+      return
+    }
+
+    if (disableHardwareAcceleration) {
+      await asyncFs.rm(DISABLE_HARDWARE_ACCELERATION_PATH)
+    } else {
+      // create an empty file
+      const handle = await asyncFs.open(DISABLE_HARDWARE_ACCELERATION_PATH, 'w')
       await handle.close()
     }
 
@@ -2337,6 +2362,47 @@ function runApp() {
     browserWindow.webContents.send(IpcChannels.CHANGE_VIEW, path)
   }
 
+  async function handleZoom(browserWindow, action) {
+    if (browserWindow == null || !isFreeTubeUrl(browserWindow.webContents.getURL())) {
+      return
+    }
+
+    const currentPercent = Math.round(browserWindow.webContents.getZoomFactor() * 100)
+
+    let percent
+    switch (action) {
+      case 'in':
+        percent = Math.min(UI_SCALE.MAX, currentPercent + UI_SCALE.STEP)
+        break
+      case 'out':
+        percent = Math.max(UI_SCALE.MIN, currentPercent - UI_SCALE.STEP)
+        break
+      case 'reset':
+        percent = 100
+        break
+      default:
+        return
+    }
+
+    const settingId = 'uiScale'
+
+    await baseHandlers.settings.upsert(settingId, percent)
+
+    const syncPayload = {
+      event: SyncEvents.GENERAL.UPSERT,
+      data: {
+        _id: settingId,
+        value: percent
+      }
+    }
+
+    BrowserWindow.getAllWindows().forEach((window) => {
+      if (isFreeTubeUrl(window.webContents.getURL())) {
+        window.webContents.send(IpcChannels.SYNC_SETTINGS, syncPayload)
+      }
+    })
+  }
+
   async function setMenu() {
     const sidenavSettings = baseHandlers.settings._findSidenavSettings()
     const hideTrendingVideos = (await sidenavSettings.hideTrendingVideos)?.value
@@ -2441,13 +2507,59 @@ function runApp() {
             }
           },
           { type: 'separator' },
-          { role: 'resetzoom' },
-          { role: 'resetzoom', accelerator: 'CmdOrCtrl+num0', visible: false },
-          { role: 'zoomin', accelerator: 'CmdOrCtrl+Plus' },
-          { role: 'zoomin', accelerator: 'CmdOrCtrl+=', visible: false },
-          { role: 'zoomin', accelerator: 'CmdOrCtrl+numadd', visible: false },
-          { role: 'zoomout' },
-          { role: 'zoomout', accelerator: 'CmdOrCtrl+numsub', visible: false },
+          {
+            label: 'Reset Zoom',
+            accelerator: 'CmdOrCtrl+0',
+            click: async (_menuItem, browserWindow, _event) => {
+              await handleZoom(browserWindow, 'reset')
+            }
+          },
+          {
+            label: 'Reset Zoom',
+            accelerator: 'CmdOrCtrl+num0',
+            visible: false,
+            click: async (_menuItem, browserWindow, _event) => {
+              await handleZoom(browserWindow, 'reset')
+            }
+          },
+          {
+            label: 'Zoom In',
+            accelerator: 'CmdOrCtrl+Plus',
+            click: async (_menuItem, browserWindow, _event) => {
+              await handleZoom(browserWindow, 'in')
+            }
+          },
+          {
+            label: 'Zoom In',
+            accelerator: 'CmdOrCtrl+=',
+            visible: false,
+            click: async (_menuItem, browserWindow, _event) => {
+              await handleZoom(browserWindow, 'in')
+            }
+          },
+          {
+            label: 'Zoom In',
+            accelerator: 'CmdOrCtrl+numadd',
+            visible: false,
+            click: async (_menuItem, browserWindow, _event) => {
+              await handleZoom(browserWindow, 'in')
+            }
+          },
+          {
+            label: 'Zoom Out',
+            accelerator: 'CmdOrCtrl+-',
+            click: async (_menuItem, browserWindow, _event) => {
+              await handleZoom(browserWindow, 'out')
+            }
+          },
+          {
+            label: 'Zoom Out',
+            accelerator: 'CmdOrCtrl+numsub',
+            visible: false,
+            click: async (_menuItem, browserWindow, _event) => {
+              await handleZoom(browserWindow, 'out')
+            }
+          },
           { type: 'separator' },
           { role: 'togglefullscreen' },
           { type: 'separator' },

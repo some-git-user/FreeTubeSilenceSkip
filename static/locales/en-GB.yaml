@@ -99,11 +99,13 @@ Subscriptions:
   This profile has a large number of subscriptions. Forcing RSS to avoid rate limiting: This profile has a large number of subscriptions.  Forcing RSS to avoid rate limiting
   Error Channels: Channels with errors
   Disabled Automatic Fetching: You have disabled automatic subscription fetching. Refresh subscriptions to see them here.
-  Empty Channels: Your subscribed channels currently does not have any videos.
+  Empty Channels: Your subscribed channels currently do not have any videos.
   Subscriptions Tabs: Subscriptions tabs
   All Subscription Tabs Hidden: All subscription tabs are hidden. To see content here, please unhide some tabs in the ‘{subsection}’ section in ‘{settingsSection}’.
   Empty Posts: Your subscribed channels currently do not have any posts.
   Load More Posts: Load more posts
+  Posts:
+    RSS Message: YouTube does not provide RSS feeds for posts. Disable the "{rssSetting}" setting to view posts or enable the "{hideSetting}" setting to hide this tab.
 Trending:
   Trending: 'Trending'
   Trending Tabs: Trending Tabs
@@ -197,6 +199,7 @@ User Playlists:
   Export list of URLs: Export list of URLs
   Move Video to the Top: Move Video to the Top
   Move Video to the Bottom: Move Video to the Bottom
+  This playlist is private or does not exist.: This playlist is private or does not exist.
 History:
   # On History Page
   History: 'History'
@@ -384,8 +387,8 @@ Settings:
     Scroll Volume Over Video Player: 'Scroll Volume Over Video Player'
     Default Volume: 'Default volume'
     Default Playback Rate: 'Default playback rate'
-    Default Video Format:
-      Default Video Format: 'Default video format'
+    Default Media Format:
+      Default Media Format: 'Default media format'
       Dash Formats: 'DASH formats'
       Legacy Formats: 'Legacy formats'
       Audio Formats: 'Audio formats'
@@ -505,7 +508,6 @@ Settings:
     Import Playlists: Import playlists
     Export Playlists: Export playlists
     Playlist insufficient data: Insufficient data for ‘{playlist}’ playlist, skipping item
-    All playlists has been successfully imported: All playlists has been successfully imported
     All playlists has been successfully exported: All playlists has been successfully exported
     Playlist File: Playlist file
     Subscription File: Subscription file
@@ -631,6 +633,8 @@ Settings:
     Set Password: Set password
   Sort Settings Sections (A-Z): Sort settings sections (A-Z)
   Return to Settings Menu: Return to Settings Menu
+  Search Settings: Search Settings
+  Settings found: 1 setting found | {count} settings found
 About:
   #On About page
   About: About
@@ -710,7 +714,6 @@ Channel:
   Your search results have returned 0 results: 'Your search results have returned 0 results'
   Videos:
     Videos: 'Videos'
-    This channel does not currently have any videos: 'This channel does not currently have any videos'
     Sort Types:
       Newest: 'Newest'
       Oldest: 'Oldest'
@@ -975,7 +978,7 @@ Tooltips:
     Fetch Feeds from RSS: When enabled, FreeTube will use RSS instead of its default method to grab your subscription feed. RSS is faster and prevents IP blocking, but it doesn’t provide certain information like video duration, live status or posts
     Fetch Automatically: When enabled, FreeTube will automatically fetch your subscription feed on startup and when a new window is opened.
   Player Settings:
-    Default Video Format: Set the formats used when a video plays. DASH formats can play higher qualities. Legacy formats are limited to a max of 360p but use less bandwidth. Audio formats are audio only streams.
+    Default Media Format: Set the formats used when a video plays. DASH formats can play higher qualities. Legacy formats are limited to a max of 360p but use less bandwidth. Audio formats are audio only streams.
     Proxy Videos Through Invidious: Will connect to Invidious to serve videos instead of making a direct connection to YouTube.
     Scroll Playback Rate Over Video Player: While the cursor is over the video, press and hold the Control key (Command Key on Mac) and scroll the mouse wheel forwards or backwards to control the playback rate. Press and hold the Control key (Command Key on Mac) and left click the mouse to quickly return to the default playback rate (1x unless it has been changed in the settings).
     Skip by Scrolling Over Video Player: Use the scroll wheel to skip through the video, MPV style.
@@ -1013,6 +1016,8 @@ Default Invidious instance has been set to {instance}: Default Invidious instanc
 Search Bar:
   Clear Input: Clear input
   Remove: Remove
+  Open Search Container: Open Search Container
+  Search: Search
 External link opening has been disabled in the general settings: External link opening has been disabled in the general settings
 Are you sure you want to open this link?: Are you sure you want to open this link?
 Screenshot Error: Screenshot failed. {error}

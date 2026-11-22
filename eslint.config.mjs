@@ -14,11 +14,11 @@ import eslintPluginImportX from 'eslint-plugin-import-x'
 import eslintPluginN from 'eslint-plugin-n'
 import eslintPluginPromise from 'eslint-plugin-promise'
 
-import freetube from './_scripts/eslint-rules/plugin.mjs'
-
 import activeLocales from './static/locales/activeLocales.json' with { type: 'json' }
 
-export default [
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig([
   {
     ignores: [
       'build/',
@@ -246,7 +246,6 @@ export default [
     plugins: {
       unicorn: eslintPluginUnicorn,
       jsdoc,
-      freetube,
     },
 
     languageOptions: {
@@ -333,8 +332,6 @@ export default [
       'jsdoc/check-types': 'error',
       'jsdoc/no-bad-blocks': 'error',
       'jsdoc/no-multi-asterisks': 'error',
-
-      'freetube/prefer-use-i18n-polyfill': 'error',
     },
   },
 
@@ -346,14 +343,13 @@ export default [
       }
     }
   },
-
-  ...eslintPluginJsonc.configs.base,
   {
     files: ['**/*.json'],
     ignores: [
       '_scripts/',
     ],
 
+    extends: [eslintPluginJsonc.configs.base],
     rules: {
       '@stylistic/no-tabs': 'off',
       '@stylistic/comma-spacing': 'off',
@@ -368,14 +364,14 @@ export default [
       },
     },
   },
-
-  ...eslintPluginYml.configs.recommended,
   {
     files: ['**/*.{yml,yaml}'],
     ignores: [
       '.github/',
       '_scripts/'
     ],
+
+    extends: [eslintPluginYml.configs.recommended],
 
     rules: {
       'yml/no-irregular-whitespace': 'off',
@@ -448,4 +444,4 @@ export default [
       'unicorn/prefer-array-index-of': 'error',
     }
   }
-]
+])

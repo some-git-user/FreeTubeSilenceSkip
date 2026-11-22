@@ -40,6 +40,7 @@ Global:
     Watching Count: 1 vaatamas | {count} vaatamas
     Like Count: 1 meeldimine | {count} meeldimist
     Comment Count: 1 kommentaar | {count} kommentaari
+    Replies Remaining: "{' '}(1 jäänud) | {' '}({count} jäänud)"
 Version {versionNumber} is now available!  Click for more details: 'Versioon {versionNumber} in nüüd saadaval! Lisateavet leiad siit'
 Download From Site: 'Laadi veebisaidist alla'
 
@@ -103,6 +104,8 @@ Subscriptions:
   All Subscription Tabs Hidden: Kõik tellimuse vahekaardid on peidetud. Siinse sisu nägemiseks palun eemalda kaartide peitmine jaotises „{subsection}“ / „{settingsSection}“.
   Load More Posts: Lisa järgmised postitused
   Empty Posts: Sinu tellitud kanalites hetkel pole ühtegi postitust.
+  Posts:
+    RSS Message: YouTube'is ei leidu postituste RSS-vooge. Postituste vaatamiseks lülita välja seadistus „{rssSetting}“ või vahekaardi peitmiseks lülita sisse „{hideSetting}“ seadistus.
 Trending:
   Trending: 'Populaarsust koguvad videod'
   Trending Tabs: Populaarsust koguvad kaardid
@@ -193,6 +196,8 @@ User Playlists:
   The playlist has been successfully exported: Esitusloendi eksportimine õnnestus
   TotalTimePlaylist: 'Kestus kokku: {duration}'
   Export list of URLs: Ekspordi võrguaadresside loend
+  Move Video to the Top: Tõsta video üles äärde
+  Move Video to the Bottom: Tõsta video alla äärde
 History:
   # On History Page
   History: 'Ajalugu'
@@ -428,6 +433,9 @@ Settings:
       Theater: Teatrivaade
       Default Viewing Mode: Vaikimisi vaade
       Picture in Picture: Pilt pildis vaade
+      Full Window (Always On): Täiseaknavaade (alati sisselülitatuna)
+      Full Screen (Always On): Täisekraanivaade (alati sisselülitatuna)
+      Tooltip: Enamik vaikimisi vaatamisrežiime rakendub ainult iga vaatamissessiooni alguses. Sessiooni jooksul tehtud muudatused jäävad kehtima kuni sessiooni lõpuni. Püsivad vaatamisrežiimid rakenduvad iga kord, kui asud uut videot vaatama, sõltumata sellest, milliseid vaatamisrežiimi muudatusi tehti eelmise video vaatamise ajal.
   Privacy Settings:
     Privacy Settings: 'Privaatsus'
     Remember History: 'Jäta vaatamiste ajalugu meelde'
@@ -502,6 +510,15 @@ Settings:
     Export search history: Ekspordi otsinguajalugu
     All search history has been successfully imported: Kogu otsinguajaloo importimine õnnestus
     All search history has been successfully exported: Kogu otsinguajaloo eksportimine õnnestus
+    Settings File: Seadistuste fail
+    Import Settings: Impordi seadistused
+    Export Settings: Ekspordi seadistused
+    Settings Tooltip: Operatsioonisüsteemi- või kasutajaspetsiifilisi ning katselisi seadistusi ei saa importida ega eksportida (nt. kasutatav proksi, väline meediapleier, ekraanitõmmiste kaust, jne)
+    All settings have been successfully imported: Kõik seadistused on kenasti imporditud
+    All settings have been successfully exported: Kõik seadistused on kenasti eksporditud
+    Setting object has insufficient data, skipping item: Seadistuste objekti andmed on puudulikud ja jäävad vahele
+    Unknown setting key: 'Tundmatu seadistuste võti: {key}'
+    Non-transferable setting key: 'Mitteedastatav seadistuste võti: {key}'
   Distraction Free Settings:
     Hide Active Subscriptions: Peida aktiivsed tellimused
     Hide Live Chat: Peida veebivestlused
@@ -618,7 +635,6 @@ About:
   #On About page
   About: 'Teave'
   #& About
-  Email: E-post
   Donate: Toeta meid
   these people and projects: tänu nendele inimestele ja projektidele
   Credits: Tänuavaldused
@@ -745,6 +761,7 @@ Channel:
   Courses:
     Courses: Kursused
     This channel does not currently have any courses: Sellel kanalil pole hetkel kursuseid
+  View All: Vaata kõiki
 Video:
   Mark As Watched: 'Märgi vaadatuks'
   Remove From History: 'Kustuta ajaloost'
@@ -862,6 +879,8 @@ Video:
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Järelejäänud aeg SABR-protokollist loobumiseks: {remindingTimeSeconds}s'
   Popout Live Chat: Vestlus hüpikaknas
   Private: Privaatseid videoid FreeTube'is vaadata ei saa - nad vajavad sisselogimist Google'i teenusega ja video omandi kinnitust.
+  Collapse Playlist: Lappa esitusloend kokku
+  Expand Playlist: Lappa esitusloend lahti
 Playlist:
   #& About
   View Full Playlist: 'Näita kogu esitusloendit'
@@ -912,7 +931,6 @@ Mini Player: 'Kompaktne vaade'
 Comments:
   Comments: 'Kommentaarid'
   Click to View Comments: 'Kommentaaride vaatamiseks klõpsi'
-  Getting comment replies, please wait: 'Laadin kommentaari vastuseid, palun oota'
   There are no more comments for this video: 'Sellel videol ei ole rohkem kommentaare'
   Hide Comments: 'Peida kommentaarid'
   # Context: View 10 Replies, View 1 Reply
@@ -930,6 +948,8 @@ Comments:
   Hide {replyCount} replies: Peida üks vastus | Peida {replyCount} vastust
   View 1 reply from {channelName}: Vaata üht vastust kanalist {channelName}
   View {replyCount} replies from {channelName} and others: Vaata {replyCount} vastust kanalist {channelName} ja muudest allikatest
+  Loading replies: Laadin vastuseid…
+  Hide Replies: Peida vastus | Peida vastused
 Up Next: 'Järgmisena'
 
 # Toast Messages
@@ -969,7 +989,7 @@ Tooltips:
     Thumbnail Preference: Vaikimisi pisipildi asemel kuvab FreeTube kõikjal läbi rakenduse kaadrit videost ja seda hägusena ja peidetuna.
     Fallback to Non-Preferred Backend on Failure: Kui sinu eelistatud APi ei toimi, siis kui vähegi võimalik, FreeTube üritab kasutada alternatiivi.
     Preferred API Backend: Vali taustateenus, mida FreeTube kasutab andmete laadimisel. Kohalik API on rakenduses olemas ja Invidious'e API eeldab välise teenuseserveri kasutamist.
-    Invidious Instance: Invidious'e teenuse server, mida FreeTube kasutab API kutse tegemisel.
+    Invidious Instance: Invidious'e teenuse server, mida FreeTube kasutab API-päringute tegemisel. Kui sa just ei määra seda serverit vaikimisi serveriks, siis antud seadistuse muudatus kehtib vaid praeguse akna jaoks.
     External Link Handling: "Vali vaikekäitumine, kui vajutatakse linki, mida ei saa avada FreeTubes.\nVaikimisi avaneb link kasutaja vaikebrauseris.\n"
     Open Deep Links In New Window: FreeTube'ile brauseritest või käsurealt antud võrguaadressid avatakse uues aknas.
   Player Settings:

@@ -52,6 +52,7 @@ Global:
     Like Count: 1 like | {count} likes
     Comment Count: 1 comment | {count} comments
     Watching Count: 1 watching | {count} watching
+    Replies Remaining: "{' '}(1 remaining) | {' '}({count} remaining)"
 
 # Search Bar
 Search / Go to URL: Search / Go to URL
@@ -131,6 +132,8 @@ Subscriptions:
   Load More Posts: Load More Posts
   Subscriptions Tabs: Subscriptions Tabs
   All Subscription Tabs Hidden: 'All subscription tabs are hidden. To see content here, please unhide some tabs in the "{subsection}" section in "{settingsSection}".'
+  Posts:
+    RSS Message: YouTube does not provide RSS feeds for posts. Disable the "{rssSetting}" setting to view posts or enable the "{hideSetting}" setting to hide this tab.
 More: More
 Channels:
   Channels: Channels
@@ -164,6 +167,8 @@ User Playlists:
   Add to Favorites: Add to {playlistName}
   Remove from Favorites: Remove from {playlistName}
 
+  Move Video to the Top: Move Video to the Top
+  Move Video to the Bottom: Move Video to the Bottom
   Move Video Up: Move Video Up
   Move Video Down: Move Video Down
   Remove from Playlist: Remove from Playlist
@@ -445,6 +450,9 @@ Settings:
       Full Screen: Full Screen
       Picture in Picture: Picture in Picture
       External Player: External Player ({externalPlayerName})
+      Full Window (Always On): Full Window (Always On)
+      Full Screen (Always On): Full Screen (Always On)
+      Tooltip: Most default viewing modes are only applied at the start of each watch session. Changes made during the session persist until it ends. Always-on viewing modes are applied whenever you switch to a new video, regardless of any viewing mode changes made when viewing the previous video.
     Scroll Volume Over Video Player: Scroll Volume Over Video Player
     Scroll Playback Rate Over Video Player: Scroll Playback Rate Over Video Player
     Skip by Scrolling Over Video Player: Skip by Scrolling Over Video Player
@@ -594,6 +602,7 @@ Settings:
     History File: History File
     Playlist File: Playlist File
     Search history file: Search history file
+    Settings File: Settings File
     Export Subscriptions: Export Subscriptions
     Export FreeTube: Export FreeTube
     Export YouTube: Export YouTube
@@ -605,6 +614,9 @@ Settings:
     Search history: Search history
     Import search history: Import search history
     Export search history: Export search history
+    Import Settings: Import Settings
+    Export Settings: Export Settings
+    Settings Tooltip: Settings that are OS/user-specific or experimental cannot be exported or imported (e.g., proxy, external player, screenshot folder...)
     Profile object has insufficient data, skipping item: Profile object has insufficient
       data, skipping item
     All subscriptions and profiles have been successfully imported: All subscriptions
@@ -630,9 +642,16 @@ Settings:
       successfully imported
     All search history has been successfully exported: All search history has been
       successfully exported
+    All settings have been successfully imported: All settings have been
+      successfully imported
+    All settings have been successfully exported: All settings have been
+      successfully exported
     Unable to read file: Unable to read file
     Unable to write file: Unable to write file
     Unknown data key: Unknown data key
+    Setting object has insufficient data, skipping item: Setting object has insufficient data, skipping item
+    Unknown setting key: 'Unknown setting key: {key}'
+    Non-transferable setting key: 'Non-transferable setting key: {key}'
     How do I import my subscriptions?: How do I import my subscriptions?
     Manage Subscriptions: Manage Subscriptions
   Proxy Settings:
@@ -703,7 +722,6 @@ About:
   GitHub issues: GitHub issues
   Please check for duplicates before posting: Please check for duplicates before posting
   Website: Website
-  Email: Email
   Mastodon: Mastodon
   Chat on Matrix: Chat on Matrix
   Please read the {roomRulesLink}: Please read the {roomRulesLink}
@@ -776,6 +794,7 @@ Channel:
   This channel does not allow searching: This channel does not allow searching
   This channel is age-restricted and currently cannot be viewed in FreeTube.: This channel is age-restricted and currently cannot be viewed in FreeTube.
   Channel Tabs: Channel Tabs
+  View All: View All
   Videos:
     Videos: Videos
     This channel does not currently have any videos: This channel does not currently
@@ -859,6 +878,8 @@ Video:
   Loop Playlist: Loop Playlist
   Shuffle Playlist: Shuffle Playlist
   Reverse Playlist: Reverse Playlist
+  Collapse Playlist: Collapse Playlist
+  Expand Playlist: Expand Playlist
   Previous: Previous
   Next: Next
   Watched: Watched
@@ -1010,16 +1031,16 @@ Mini Player: Mini Player
 Comments:
   Comments: Comments
   Click to View Comments: Click to View Comments
-  Getting comment replies, please wait: Getting comment replies, please wait
   There are no more comments for this video: There are no more comments for this video
   Hide Comments: Hide Comments
   Top comments: Top comments
   Newest first: Newest First
   View {replyCount} replies: View 1 reply | View {replyCount} replies
-  Hide {replyCount} replies: Hide 1 reply | Hide {replyCount} replies
+  Hide Replies: Hide reply | Hide replies
+  Loading replies: Loading replies...
   View 1 reply from {channelName}: View 1 reply from {channelName}
   View {replyCount} replies from {channelName} and others: View {replyCount} replies from {channelName} and others
-  Show More Replies: Show More Replies
+  Show More Replies: Show more replies
   There are no comments available for this video: There are no comments available
     for this video
   There are no comments available for this post: There are no comments available for this post
@@ -1046,7 +1067,7 @@ Tooltips:
     Thumbnail Preference: All thumbnails throughout FreeTube will be replaced with
       a frame of the video, blurred or hidden instead of the default thumbnail.
     Invidious Instance: The Invidious instance that FreeTube will connect to for API
-      calls.
+      calls. Changes to this setting apply only to the current window unless you set this instance as the default.
     Region for Trending: The region of trends allows you to pick which country's trending
       videos you want to have displayed.
     External Link Handling: |

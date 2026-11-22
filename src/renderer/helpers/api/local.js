@@ -1,11 +1,13 @@
-import { ClientType, Constants, Innertube, Misc, Mixins, Parser, Platform, UniversalCache, Utils, YT, YTNodes } from 'youtubei.js'
+import { ClientType, Constants, Innertube, Misc, Mixins, Parser, Platform, Player, Session, UniversalCache, Utils, YT, YTNodes } from 'youtubei.js'
 import Autolinker from 'autolinker'
-import { SEARCH_CHAR_LIMIT } from '../../../constants'
+import { parseLooseJSON } from 'bgutils-js/utils'
 
+import { SEARCH_CHAR_LIMIT } from '../../../constants'
 import { PlayerCache } from './PlayerCache'
 import {
   CHANNEL_HANDLE_REGEX,
   calculatePublishedDate,
+  deepCopy,
   escapeHTML,
   extractNumberFromString,
   getChannelPlaylistId,
@@ -140,22 +142,22 @@ export async function getLocalPlaylist(id) {
  */
 
 /**
- * @param {import('youtubei.js').YTNodes.ContinuationItem} continuationItem
+ * @param {import('youtubei.js').YTNodes.ContinuationItem | import('youtubei.js').YTNodes.ContinuationItemView} continuationItemOrView
  * @param {import('youtubei.js').Actions} actions
  */
-function serializeContinuationItem(continuationItem, actions) {
+function serializeContinuation(continuationItemOrView, actions) {
   let path, payload
 
   // Based on YouTube.js' NavigationEndpoint#call()
-  if (continuationItem.endpoint.command.is(YTNodes.CommandExecutorCommand)) {
+  if (continuationItemOrView.endpoint.command.is(YTNodes.CommandExecutorCommand)) {
     /** @type {import('youtubei.js').Helpers.YTNode & import('youtubei.js').APIResponseTypes.IEndpoint} */
-    const command = continuationItem.endpoint.command.commands.at(-1)
+    const command = continuationItemOrView.endpoint.command.commands.at(-1)
 
     path = command.getApiPath()
     payload = command.buildRequest()
   } else {
-    path = continuationItem.endpoint.metadata.api_url
-    payload = continuationItem.endpoint.payload
+    path = continuationItemOrView.endpoint.metadata.api_url
+    payload = continuationItemOrView.endpoint.payload
   }
 
   /** @type {SerializedContinuation} */
@@ -169,18 +171,21 @@ function serializeContinuationItem(continuationItem, actions) {
 }
 
 /**
+ * @template {import('youtubei.js').YTNodes} N
  * @param {import('youtubei.js').Mixins.Feed} feed
+ * @param {import('youtubei.js').YTNodeConstructor<N>[]} types
+ * @return {N}
  */
-function extractFeedContinuationItem(feed) {
+function extractFeedContinuation(feed, types) {
   let continuationItem
 
   if (feed.page.header_memo) {
-    const headerContinuations = feed.page.header_memo.getType(YTNodes.ContinuationItem)
-    continuationItem = feed.memo.getType(YTNodes.ContinuationItem).find(
+    const headerContinuations = feed.page.header_memo.getType(...types)
+    continuationItem = feed.memo.getType(...types).find(
       (continuation) => !headerContinuations.includes(continuation)
     )
   } else {
-    continuationItem = feed.memo.getType(YTNodes.ContinuationItem)[0]
+    continuationItem = feed.memo.getType(types)[0]
   }
 
   if (!continuationItem) {
@@ -197,22 +202,22 @@ function extractFeedContinuationItem(feed) {
 export function extractLocalCacheablePlaylistContinuation(playlist) {
   const sectionList = playlist.memo.getType(YTNodes.SectionList)[0]
 
-  let continuationItem
+  let continuationItemOrView
 
   // No section list means there can't be additional continuation nodes here,
   // so no need to check.
   if (!sectionList) {
-    continuationItem = extractFeedContinuationItem(playlist)
+    continuationItemOrView = extractFeedContinuation(playlist, [YTNodes.ContinuationItem, YTNodes.ContinuationItemView])
   } else {
-    continuationItem = playlist.memo.getType(YTNodes.ContinuationItem)
+    continuationItemOrView = playlist.memo.getType(YTNodes.ContinuationItem, YTNodes.ContinuationItemView)
       .find((node) => !sectionList.contents.includes(node))
   }
 
-  if (!continuationItem) {
+  if (!continuationItemOrView) {
     throw new Utils.InnertubeError('There are no continuations.')
   }
 
-  return serializeContinuationItem(continuationItem, playlist.actions)
+  return serializeContinuation(continuationItemOrView, playlist.actions)
 }
 
 /**
@@ -221,9 +226,9 @@ export function extractLocalCacheablePlaylistContinuation(playlist) {
  * @returns {SerializedContinuation}
  */
 export function extractLocalCacheableSearchContinuation(search) {
-  const continuationItem = extractFeedContinuationItem(search)
+  const continuationItem = extractFeedContinuation(search, [YTNodes.ContinuationItem])
 
-  return serializeContinuationItem(continuationItem, search.actions)
+  return serializeContinuation(continuationItem, search.actions)
 }
 
 /**
@@ -283,7 +288,7 @@ export async function getLocalPlaylistContinuation(playlist) {
 }
 
 /**
- * Callback for adding two numbers.
+ * Callback for processing a Local playlist.
  *
  * @callback untilEndOfLocalPlayListCallback
  * @param {import('youtubei.js').YT.Playlist} playlist
@@ -374,6 +379,167 @@ export async function getLocalSearchContinuation(continuationData) {
 }
 
 /**
+ * @param {string} url
+ * @param {string} kind
+ */
+async function getHTMLPage(url, kind) {
+  // This returns session/tracking cookies but they get removed in onHeadersReceived in the main process before they are saved by Electron
+  const htmlResponse = await fetch(url,
+    {
+      headers: {
+        // We need to be able to parse the localised strings in the /next response data (e.g. view counts and published dates)
+        'Accept-Language': 'en-US'
+      }
+    }
+  )
+
+  const htmlPage = await htmlResponse.text()
+
+  const ytConfigStr = htmlPage.match(/ytcfg\.set\(({.+?})\);/s)?.[1]
+  if (!ytConfigStr) {
+    // required for botguard
+    throw new Error(`Could not find ytcfg in the ${kind} HTML page`)
+  }
+
+  const ytConfig = JSON.parse(ytConfigStr)
+
+  const initialAttestationDataMatch = htmlPage.match(/window\.ytAtN\(\s*({[\s\S]*?})\s*\)/)
+
+  if (!initialAttestationDataMatch) {
+    // required for botguard
+    throw new Error(`Could not find challenge in the ${kind} HTML page`)
+  }
+
+  let initialAttestationData
+
+  try {
+    initialAttestationData = parseLooseJSON(initialAttestationDataMatch[1])
+  } catch (e) {
+    const error = new Error(`Failed to parse the ${kind} home page initial attestation data`, { cause: e })
+    console.error(error, initialAttestationDataMatch[1])
+    throw error
+  }
+
+  let playerId = ytConfig.PLAYER_JS_URL?.match(/player\/([^/]+)\//)?.[1]
+
+  playerId ??= htmlPage.match(/<script[^>]+src="[^">]+player\/([^/]+)\/[^"]+\/base.js"/)?.[1]
+
+  return {
+    htmlPage,
+    ytConfig,
+    initialAttestationData,
+    playerId
+  }
+}
+
+/**
+ * @param {string} videoId
+ * @param {(input, init) => Promise<Response>} fetchFunc
+ */
+async function getWatchHTMLWatchPage(videoId, fetchFunc) {
+  let htmlPage, ytConfig, initialAttestationData
+
+  let playerResponse, nextResponse
+  /** @type {string | undefined} */
+  let playerId
+
+  if (sessionStorage.getItem('playerHtmlHomepageFallback') === '1') {
+    ({ ytConfig, initialAttestationData, playerId } = await getHTMLPage('https://www.youtube.com', 'home'))
+  } else {
+    try {
+      ({ htmlPage, ytConfig, initialAttestationData, playerId } = await getHTMLPage(`https://www.youtube.com/watch?v=${videoId}&bpctr=9999999999&has_verified=1`, 'watch'))
+
+      const playerResponseStr = htmlPage.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/)?.[1]
+
+      // not fatal if it is missing as we can retrieve it from Innertube ourselves
+      if (playerResponseStr) {
+        try {
+          playerResponse = JSON.parse(playerResponseStr)
+        } catch (e) {
+          console.warn('/player response extracted from the HTML page is invalid JSON', e)
+        }
+      } else {
+        console.warn('Could not find /player response in the HTML page')
+      }
+
+      const nextResponseStr = htmlPage.match(/(?:window\s*\[\s*["']ytInitialData["']\s*\]|ytInitialData)\s*=\s*(\{.+?\});/)?.[1]
+
+      // not fatal if it is missing as we can retrieve it from Innertube ourselves
+      if (nextResponseStr) {
+        try {
+          nextResponse = JSON.parse(nextResponseStr)
+        } catch (e) {
+          console.warn('/next response extracted from the HTML page is invalid JSON', e)
+        }
+      } else {
+        console.warn('Could not find /next response in the HTML page')
+      }
+    } catch (watchError) {
+      console.warn('Falling back to the YT home page for the rest of the session because of:', watchError)
+
+      // Fall back to the home page for the rest of the session/until FreeTube is restarted
+      // assuming that getting the watch page captcha once is a sign that it will continue happening
+      sessionStorage.setItem('playerHtmlHomepageFallback', '1');
+
+      ({ ytConfig, initialAttestationData, playerId } = await getHTMLPage('https://www.youtube.com', 'home'))
+    }
+  }
+
+  const session = buildSessionFromYtConfig(ytConfig, fetchFunc)
+
+  return {
+    ytConfig,
+    initialAttestationData,
+    session,
+    playerId,
+    playerResponse,
+    nextResponse
+  }
+}
+
+/**
+ * @param {object} ytConfig
+ * @param {(input, init) => Promise<Response>} fetchFunc
+ */
+function buildSessionFromYtConfig(ytConfig, fetchFunc) {
+  const context = deepCopy(ytConfig.INNERTUBE_CONTEXT)
+
+  if (context.clickTracking) {
+    delete context.clickTracking
+  }
+
+  context.client.timeZone ??= Intl.DateTimeFormat().resolvedOptions().timeZone
+  context.client.screenDensityFloat ??= 1
+  context.client.screenHeightPoints ??= 1440
+  context.client.screenPixelDensity ??= 1
+  context.client.screenWidthPoints ??= 2560
+  context.client.utcOffsetMinutes ??= -Math.floor((new Date()).getTimezoneOffset())
+  context.client.memoryTotalKbytes ??= '8000000'
+
+  context.client.mainAppWebInfo ??= {
+    graftUrl: Constants.URLS.YT_BASE,
+    pwaInstallabilityStatus: 'PWA_INSTALLABILITY_STATUS_UNKNOWN',
+    webDisplayMode: 'WEB_DISPLAY_MODE_BROWSER',
+    isWebNativeShareAvailable: true
+  }
+
+  context.client.configInfo ??= {}
+  context.client.configInfo.coldConfigData ??= ytConfig.RAW_COLD_CONFIG_GROUP?.configData
+  context.client.configInfo.coldHashData ??= ytConfig.SERIALIZED_COLD_HASH_DATA
+  context.client.configInfo.hotHashData ??= ytConfig.SERIALIZED_HOT_HASH_DATA
+
+  context.user = {
+    enableSafetyMode: false,
+    lockedSafetyMode: false,
+  }
+
+  return new Session(
+    context, ytConfig.INNERTUBE_API_KEY, ytConfig.INNERTUBE_API_VERSION,
+    0, undefined, undefined, undefined, fetchFunc
+  )
+}
+
+/**
  * @param {string} id
  * @returns {Promise<{
  *   info: import('youtubei.js').YT.VideoInfo,
@@ -388,54 +554,41 @@ export async function getLocalSearchContinuation(continuationData) {
  * }>}
  */
 export async function getLocalVideoInfo(id) {
-  let responseTime = Date.now()
+  let responseTime
   let totalAdTimeMilliseconds = 0
 
-  const webInnertube = await createInnertube({
-    withPlayer: true,
-    generateSessionLocally: false,
-    fetchFunc: async (input, init) => {
-      if (!(input.url?.startsWith('https://www.youtube.com/youtubei/v1/player'))) {
-        return fetch(input, init)
-      }
-
-      const response = await fetch(input, init)
-
-      const responseText = await response.text()
-
-      responseTime = Date.now()
-
-      const json = JSON.parse(responseText)
-
-      if (Array.isArray(json.adSlots)) {
-        for (const adSlot of json.adSlots) {
-          if (adSlot.adSlotRenderer?.adSlotMetadata?.triggerEvent === 'SLOT_TRIGGER_EVENT_BEFORE_CONTENT') {
-            const instreamVideoAdRenderer = adSlot.adSlotRenderer.fulfillmentContent?.fulfilledLayout?.playerBytesAdLayoutRenderer
-              ?.renderingContent?.instreamVideoAdRenderer
-
-            if (instreamVideoAdRenderer) {
-              if (typeof instreamVideoAdRenderer.skipOffsetMilliseconds === 'number') {
-                totalAdTimeMilliseconds += instreamVideoAdRenderer.skipOffsetMilliseconds
-              } else if (instreamVideoAdRenderer.playerVars) {
-                const match = instreamVideoAdRenderer.playerVars.match(/length_seconds=([\d.]+)/)
-
-                if (match) {
-                  totalAdTimeMilliseconds += parseFloat(match[1]) * 1000
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // Need to return a new response object, as you can only read the response body once.
-      return new Response(responseText, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers
-      })
+  const fetchFunc = async (input, init) => {
+    if (!(input.url?.startsWith('https://www.youtube.com/youtubei/v1/player'))) {
+      return fetch(input, init)
     }
-  })
+
+    const response = await fetch(input, init)
+    const responseText = await response.text()
+
+    responseTime = Date.now()
+
+    const json = JSON.parse(responseText)
+
+    totalAdTimeMilliseconds = extractTotalAdTimeMilliseconds(json)
+
+    // Need to return a new response object, as you can only read the response body once.
+    return new Response(responseText, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers
+    })
+  }
+
+  const htmlExtracts = await getWatchHTMLWatchPage(id, fetchFunc)
+  responseTime = Date.now()
+
+  const player = await Player.create(
+    process.env.IS_ELECTRON ? new PlayerCache() : new UniversalCache(false),
+    (input, init) => fetch(input, init),
+    undefined,
+    // If we found the player ID in the HTML we can pass it in to save one request inside Player.create()
+    htmlExtracts.playerId
+  )
 
   // based on the videoId
   let contentPoToken
@@ -444,23 +597,64 @@ export async function getLocalVideoInfo(id) {
     try {
       contentPoToken = await window.ftElectron.generatePoToken(
         id,
-        JSON.stringify(webInnertube.session.context)
+        JSON.stringify(htmlExtracts.session.context),
+        JSON.stringify(htmlExtracts.initialAttestationData),
+        JSON.stringify(htmlExtracts.ytConfig)
       )
 
-      webInnertube.session.player.po_token = contentPoToken
+      player.po_token = contentPoToken
     } catch (error) {
       console.error('Local API, poToken generation failed', error)
       throw error
     }
   }
 
-  const info = await webInnertube.getInfo(id, { po_token: contentPoToken })
+  let playerResponse
+  let nextResponse
+  const context = htmlExtracts.session.context
+
+  if (htmlExtracts.playerResponse) {
+    totalAdTimeMilliseconds = extractTotalAdTimeMilliseconds(htmlExtracts.playerResponse)
+
+    playerResponse = { data: htmlExtracts.playerResponse }
+  } else {
+    playerResponse = await htmlExtracts.session.actions.execute('/player', {
+      videoId: id,
+      racyCheckOk: true,
+      contentCheckOk: true,
+      playbackContext: {
+        contentPlaybackContext: {
+          vis: 0,
+          splay: false,
+          lactMilliseconds: '-1',
+          signatureTimestamp: player.signature_timestamp
+        }
+      },
+      serviceIntegrityDimensions: {
+        poToken: contentPoToken
+      }
+    })
+  }
+
+  if (htmlExtracts.nextResponse) {
+    nextResponse = { data: htmlExtracts.nextResponse }
+  } else {
+    nextResponse = await htmlExtracts.session.actions.execute('/next', {
+      videoId: id,
+      racyCheckOk: true,
+      contentCheckOk: true
+    })
+  }
+
+  const cpn = Utils.generateRandomString(16)
+
+  const info = new YT.VideoInfo([playerResponse, nextResponse], htmlExtracts.session.actions, cpn)
 
   // Some time would be used for parsing and maybe additional requests so end time should be calculated sooner to reduce actual waiting time
   // Legacy format requires this
   const adEndTimeUnixMs = responseTime + totalAdTimeMilliseconds
 
-  let { clientName, clientVersion, osName, osVersion } = webInnertube.session.context.client
+  let { clientName, clientVersion, osName, osVersion } = context.client
 
   let hasTrailer = info.has_trailer
   let trailerIsAgeRestricted = info.getTrailerInfo() === null
@@ -472,12 +666,12 @@ export async function getLocalVideoInfo(id) {
   ) {
     try {
       const webEmbeddedInnertube = await createInnertube({ clientType: ClientType.WEB_EMBEDDED })
-      webEmbeddedInnertube.session.context.client.visitorData = webInnertube.session.context.client.visitorData
+      webEmbeddedInnertube.session.context.client.visitorData = context.client.visitorData
 
       const videoId = hasTrailer && trailerIsAgeRestricted ? info.playability_status.error_screen.video_id : id
 
       // getBasicInfo needs the signature timestamp (sts) from inside the player
-      webEmbeddedInnertube.session.player = webInnertube.session.player
+      webEmbeddedInnertube.session.player = player
 
       const bypassedInfo = await webEmbeddedInnertube.getBasicInfo(videoId, { client: 'WEB_EMBEDDED', po_token: contentPoToken })
 
@@ -527,8 +721,6 @@ export async function getLocalVideoInfo(id) {
   }
 
   if (info.streaming_data) {
-    const player = webInnertube.session.player
-
     await decipherFormats(info.streaming_data.formats, player)
 
     if (info.streaming_data.server_abr_streaming_url) {
@@ -538,7 +730,7 @@ export async function getLocalVideoInfo(id) {
     if (info.streaming_data.dash_manifest_url) {
       info.streaming_data.dash_manifest_url = await decipherManifestUrl(
         info.streaming_data.dash_manifest_url,
-        webInnertube.session.player,
+        player,
         contentPoToken,
         true
       )
@@ -547,7 +739,7 @@ export async function getLocalVideoInfo(id) {
     if (info.streaming_data.hls_manifest_url) {
       info.streaming_data.hls_manifest_url = await decipherManifestUrl(
         info.streaming_data.hls_manifest_url,
-        webInnertube.session.player,
+        player,
         contentPoToken,
         false
       )
@@ -579,10 +771,40 @@ export async function getLocalVideoInfo(id) {
 }
 
 /**
+ * @type {object}
+ */
+function extractTotalAdTimeMilliseconds(json) {
+  let totalAdTimeMilliseconds = 0
+
+  if (Array.isArray(json.adSlots)) {
+    for (const adSlot of json.adSlots) {
+      if (adSlot.adSlotRenderer?.adSlotMetadata?.triggerEvent === 'SLOT_TRIGGER_EVENT_BEFORE_CONTENT') {
+        const instreamVideoAdRenderer = adSlot.adSlotRenderer.fulfillmentContent?.fulfilledLayout?.playerBytesAdLayoutRenderer
+          ?.renderingContent?.instreamVideoAdRenderer
+
+        if (instreamVideoAdRenderer) {
+          if (typeof instreamVideoAdRenderer.skipOffsetMilliseconds === 'number') {
+            totalAdTimeMilliseconds += instreamVideoAdRenderer.skipOffsetMilliseconds
+          } else if (instreamVideoAdRenderer.playerVars) {
+            const match = instreamVideoAdRenderer.playerVars.match(/length_seconds=([\d.]+)/)
+
+            if (match) {
+              totalAdTimeMilliseconds += parseFloat(match[1]) * 1000
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return totalAdTimeMilliseconds
+}
+
+/**
  * @param {string} id
  */
 export async function getLocalComments(id) {
-  const innertube = await createInnertube()
+  const innertube = await createInnertube({ generateSessionLocally: false })
   return innertube.getComments(id)
 }
 
@@ -736,9 +958,7 @@ export async function getLocalChannelVideos(id) {
     // if the channel doesn't have a videos tab, YouTube returns the home tab instead
     // so we need to check that we got the right tab
     if (videosTab.current_tab?.endpoint.metadata.url?.endsWith('/videos')) {
-      // TODO: restore usage of official API instead of memo after youtubei.js 17.1.0 released
-      // videos = parseLocalChannelVideos(videosTab.videos, channelId, name)
-      videos = parseLocalChannelVideos([...videosTab.memo.getType(YTNodes.LockupView)], channelId, name)
+      videos = parseLocalChannelVideos(videosTab.videos, channelId, name)
     } else if (name.endsWith('- Topic') && !!videosTab.metadata.music_artist_name) {
       try {
         const playlist = await innertube.getPlaylist(getChannelPlaylistId(channelId, 'videos', 'newest'))
@@ -798,14 +1018,10 @@ export async function getLocalChannelLiveStreams(id) {
       // work around YouTube bug where it will return a bunch of responses with only continuations in them
       // e.g. https://www.youtube.com/@TWLIVES/streams
 
-      // TODO: restore usage of official API instead of memo after youtubei.js 17.1.0 released
-      // let tempVideos = liveStreamsTab.videos
-      let tempVideos = [...liveStreamsTab.memo.getType(YTNodes.LockupView)]
+      let tempVideos = liveStreamsTab.videos
       while (tempVideos.length === 0 && liveStreamsTab.has_continuation) {
         liveStreamsTab = await liveStreamsTab.getContinuation()
-        // TODO: restore usage of official API instead of memo after youtubei.js 17.1.0 released
-        // tempVideos = liveStreamsTab.videos
-        tempVideos = [...liveStreamsTab.memo.getType(YTNodes.LockupView)]
+        tempVideos = liveStreamsTab.videos
       }
 
       videos = parseLocalChannelVideos(tempVideos, channelId, name)
@@ -1330,7 +1546,7 @@ export function parseLocalPlaylistVideo(video) {
     if (shortsLockupView.accessibility_text) {
       // the `.*\s+` at the start of the regex, ensures we match the last occurence
       // just in case the video title also contains that pattern
-      const match = shortsLockupView.accessibility_text.match(/.*\s+(\d+(?:[,.]\d+)?\s?(?:[BKMbkm]|million)?|no)\s+views?/)
+      const match = shortsLockupView.accessibility_text.match(/.*\s+(\d+(?:[,.]\d+)?\s?(?:[BKMbkm]|thousand|[bm]illion)?|no)\s+views?/)
 
       if (match) {
         const count = match[1]
@@ -1356,6 +1572,8 @@ export function parseLocalPlaylistVideo(video) {
       viewCount,
       lengthSeconds: ''
     }
+  } else if (video.type === 'LockupView') {
+    return parseLockupView(video)
   } else {
     /** @type {import('youtubei.js').YTNodes.PlaylistVideo} */
     const video_ = video
@@ -1534,9 +1752,10 @@ export function parseLocalListVideo(item, channelId, channelName) {
 }
 
 const VIEWS_OR_WATCHING_REGEX = /views?|watching|waiting/i
-const WAITING_REGEX = /waiting/i
-const VIEWS_IN_NUMBER_ONLY = /^\d+(\.\d)?[km]?$/i
+const VIEWS_IN_NUMBER_ONLY = /^\d+(\.\d)?[bkm]?$/i
 const PREMIERES_TIME_REGEX = /^(premieres|scheduled for) /i
+// Sometimes got `Streamed N (unit) ago`
+const PUBLISH_TIME_REGEX = /^(streamed )?\d+ ?\w+? ago/i
 
 /**
  * @param {string | undefined} text
@@ -1550,19 +1769,19 @@ function isViewCountText(text) {
 /**
  * @param {string | undefined} text
  */
-function isViewOrWaitingCountText(text) {
+function isPremieresTimeText(text) {
   if (typeof text !== 'string') { return false }
 
-  return WAITING_REGEX.test(text) || isViewCountText(text)
+  return PREMIERES_TIME_REGEX.test(text)
 }
 
 /**
  * @param {string | undefined} text
  */
-function isPremieresTimeText(text) {
+function isPublishTimeText(text) {
   if (typeof text !== 'string') { return false }
 
-  return PREMIERES_TIME_REGEX.test(text)
+  return PUBLISH_TIME_REGEX.test(text)
 }
 
 /**
@@ -1625,11 +1844,15 @@ function parseLockupView(lockupView, channelId = undefined, channelName = undefi
       if (thumbnailBottomOverlayView) {
         if (thumbnailBottomOverlayView.badges.some(badge => badge.badge_style === 'THUMBNAIL_OVERLAY_BADGE_STYLE_LIVE')) {
           liveNow = true
-        } else if (thumbnailBottomOverlayView.badges.some(badge => badge.text.toLowerCase() === 'upcoming')) {
+        } else if (thumbnailBottomOverlayView.badges.some(badge => badge.text?.toLowerCase() === 'upcoming')) {
           isUpcoming = true
 
-          if (lockupView.metadata.metadata?.metadata_rows[1].metadata_parts?.[1].text?.text) {
-            premiereDate = new Date(lockupView.metadata.metadata.metadata_rows[1].metadata_parts[1].text.text)
+          for (const row of lockupView.metadata.metadata.metadata_rows) {
+            const foundText = row.metadata_parts?.find(part => isPremieresTimeText(part.text?.text))?.text?.text
+            if (foundText != null) {
+              premiereDate = new Date(foundText)
+              break
+            }
           }
         } else {
           const durationBadge = thumbnailBottomOverlayView.badges.find(badge => /^[\d:]+$/.test(badge.text))
@@ -1640,7 +1863,7 @@ function parseLockupView(lockupView, channelId = undefined, channelName = undefi
 
           if (lockupView.metadata.metadata?.metadata_rows != null) {
             for (const row of lockupView.metadata.metadata.metadata_rows) {
-              const foundText = row.metadata_parts?.find(part => part.text?.text?.endsWith('ago'))?.text?.text
+              const foundText = row.metadata_parts?.find(part => isPublishTimeText(part.text?.text))?.text?.text
               if (foundText != null) {
                 publishedText = foundText
                 break
@@ -1651,10 +1874,18 @@ function parseLockupView(lockupView, channelId = undefined, channelName = undefi
       }
 
       let viewCount = null
-
-      const viewsText = lockupView.metadata.metadata?.metadata_rows[1].metadata_parts?.find(part => {
-        return part.text?.text && VIEWS_OR_WATCHING_REGEX.test(part.text.text)
-      })?.text?.text
+      let viewsText = null
+      if (lockupView.metadata.metadata?.metadata_rows != null) {
+        for (const row of lockupView.metadata.metadata.metadata_rows) {
+          const foundText = row.metadata_parts?.find(part => {
+            return isViewCountText(part.text?.text)
+          })?.text?.text
+          if (foundText != null) {
+            viewsText = foundText
+            break
+          }
+        }
+      }
 
       if (viewsText) {
         const views = parseLocalSubscriberCount(viewsText)
@@ -1666,7 +1897,7 @@ function parseLockupView(lockupView, channelId = undefined, channelName = undefi
 
       const maybeAuthorText = lockupView.metadata.metadata?.metadata_rows[0].metadata_parts?.[0].text?.text
       let author = channelName
-      if (maybeAuthorText && !isViewOrWaitingCountText(maybeAuthorText) && !isPremieresTimeText(maybeAuthorText)) {
+      if (maybeAuthorText && !isViewCountText(maybeAuthorText) && !isPremieresTimeText(maybeAuthorText)) {
         author = maybeAuthorText
       }
 
@@ -2020,51 +2251,47 @@ export function mapLocalLegacyFormat(format) {
  * The complete Triforce, or one or more components of the Triforce.
  * @typedef {object} LocalComment
  * @property {string} id
- * @property {string} dataType
- * @property {string} authorLink
+ * @property {'local'} dataType
  * @property {string} author
  * @property {string} authorId
  * @property {string} authorThumb
- * @property {boolean} isPinned
- * @property {boolean} isOwner
- * @property {boolean} isMember
+ * @property {number} likes
  * @property {string} text
+ * @property {string} time
  * @property {boolean} isHearted
+ * @property {boolean} isMember
+ * @property {boolean} isOwner
+ * @property {boolean} isPinned
  * @property {boolean} hasOwnerReplied
  * @property {boolean} hasReplyToken
- * @property {CommentThread} replyToken
- * @property {boolean} showReplies
- * @property {LocalComment[]} replies
+ * @property {(YTNodes.CommentThread | Misc.CommentsContinuation)?} replyToken
+ * @property {number} replyLevel
  * @property {string} memberIconUrl
- * @property {string} time
- * @property {number} likes
  * @property {number} numReplies
  */
 /**
  * @param {import('youtubei.js').YTNodes.CommentView} comment
- * @param {import('youtubei.js').YTNodes.CommentThread} commentThread
- * @return LocalComment
+ * @param {import('youtubei.js').YTNodes.CommentThread | undefined} commentThread
+ * @return {LocalComment}
  */
 export function parseLocalComment(comment, commentThread = undefined) {
+  const replyToken = commentThread ?? null
   let hasOwnerReplied = false
-  let replyToken = null
   let hasReplyToken = false
 
   if (commentThread?.has_replies) {
-    hasOwnerReplied = commentThread.comment_replies_data.has_channel_owner_replied
-    replyToken = commentThread
+    hasOwnerReplied = !!commentThread.comment_replies_data?.has_channel_owner_replied
     hasReplyToken = true
   }
 
-  const commentTextRuns = comment.voice_reply_container?.transcript_text ? comment.voice_reply_container.transcript_text.runs : comment.content.runs
+  const commentTextRuns = comment.voice_reply_container?.transcript_text?.runs ?? comment.content?.runs ?? []
 
   return {
     id: comment.comment_id,
     dataType: 'local',
-    authorLink: comment.author.id,
-    author: comment.author.name,
-    authorId: comment.author.id,
-    authorThumb: comment.author.best_thumbnail.url,
+    author: comment.author?.name ?? '',
+    authorId: comment.author?.id ?? '',
+    authorThumb: comment.author?.best_thumbnail?.url ?? '',
     isPinned: comment.is_pinned,
     isOwner: !!comment.author_is_channel_owner,
     isMember: !!comment.is_member,
@@ -2073,12 +2300,11 @@ export function parseLocalComment(comment, commentThread = undefined) {
     hasOwnerReplied,
     hasReplyToken,
     replyToken,
-    showReplies: false,
-    replies: [],
-    memberIconUrl: comment.is_member ? comment.member_badge.url : '',
-    time: getRelativeTimeFromDate(calculatePublishedDate(comment.published_time.replace('(edited)', '').trim()), false),
-    likes: comment.like_count,
-    numReplies: parseLocalSubscriberCount(comment.reply_count)
+    replyLevel: comment.reply_level ?? 0,
+    memberIconUrl: comment.member_badge?.url ?? '',
+    time: getRelativeTimeFromDate(calculatePublishedDate((comment.published_time ?? '').replace('(edited)', '').trim()) ?? 0, false),
+    likes: parseLocalSubscriberCount(comment.like_count?.trim() || '0'),
+    numReplies: hasReplyToken ? parseLocalSubscriberCount(comment.reply_count_a11y ?? '0') : 0
   }
 }
 
@@ -2086,7 +2312,7 @@ export function parseLocalComment(comment, commentThread = undefined) {
  * @param {string} text
  */
 export function parseLocalSubscriberCount(text) {
-  const match = text.match(/(\d+)(?:[,.](\d+))?\s?([BKMbkm]|million)\b/)
+  const match = text.match(/(\d+)(?:[,.](\d+))?\s?([BKMbkm]|thousand|[bm]illion)\b/)
 
   if (match) {
     let multiplier = 0
@@ -2094,6 +2320,7 @@ export function parseLocalSubscriberCount(text) {
     switch (match[3]) {
       case 'K':
       case 'k':
+      case 'thousand':
         multiplier = 3
         break
       case 'M':
@@ -2103,6 +2330,7 @@ export function parseLocalSubscriberCount(text) {
         break
       case 'B':
       case 'b':
+      case 'billion':
         multiplier = 9
         break
     }
@@ -2131,7 +2359,11 @@ export function parseLocalCommunityPosts(posts) {
   // we don't currently support SharedPost's so that is also filtered out
   for (const post of posts) {
     if (post.type === 'SharedPost') {
-      foundIds.push(post.original_post.id, post.id)
+      // `original_post` can be null if it was deleted
+      if (post.original_post) {
+        foundIds.push(post.original_post.id)
+      }
+      foundIds.push(post.id)
     }
   }
 
@@ -2250,7 +2482,7 @@ export async function getLocalCommunityPost(postId, channelId) {
  * @param {string} channelId
  */
 export async function getLocalCommunityPostComments(postId, channelId) {
-  const innertube = await createInnertube()
+  const innertube = await createInnertube({ generateSessionLocally: false })
 
   return await innertube.getPostComments(postId, channelId)
 }

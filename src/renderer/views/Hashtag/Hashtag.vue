@@ -39,8 +39,7 @@
           role="button"
           tabindex="0"
           @click="handleFetchMore"
-          @keydown.space.prevent="handleFetchMore"
-          @keydown.enter.prevent="handleFetchMore"
+          @keydown.enter.space.prevent="handleFetchMore"
         >
           <FontAwesomeIcon :icon="['fas', 'search']" /> {{ $t("Search Filters.Fetch more results") }}
         </div>
@@ -62,7 +61,7 @@ import { getHashtagLocal, parseLocalListVideo } from '../../helpers/api/local'
 import { copyToClipboard, showToast } from '../../helpers/utils'
 import { isNullOrEmpty } from '../../helpers/strings'
 import { getHashtagInvidious } from '../../helpers/api/invidious'
-import { useI18n } from '../../composables/use-i18n-polyfill'
+import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 const route = useRoute()

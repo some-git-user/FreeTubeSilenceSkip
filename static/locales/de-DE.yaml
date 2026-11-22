@@ -38,6 +38,7 @@ Global:
     Watching Count: 1 Zuschauer | {count} Zuschauende
     Comment Count: 1 Kommentar | {count} Kommentare
     Like Count: 1 Gefällt mir | {count} Gefällt mir
+    Replies Remaining: "{' '}(1 verbleibend) | {' '}({count} verbleibend)"
 Search / Go to URL: Suchen / URL öffnen
   # In Filter Button
 Search Filters:
@@ -187,6 +188,8 @@ User Playlists:
   The playlist has been successfully exported: Die Playlist wurde erfolgreich exportiert
   TotalTimePlaylist: 'Gesamtzeit: {duration}'
   Export list of URLs: Liste der URLs exportieren
+  Move Video to the Top: Video nach oben verschieben
+  Move Video to the Bottom: Video nach unten verschieben
 History:
   # On History Page
   History: Verlauf
@@ -423,6 +426,9 @@ Settings:
       External Player: Externer Player ({externalPlayerName})
       Full Screen: Vollbild
       Default Viewing Mode: Standard-Ansichtsmodus
+      Full Window (Always On): Volles Fenster (Immer Ein)
+      Full Screen (Always On): Vollbild (Immer Ein)
+      Tooltip: Die meisten Standardanzeigemodi werden nur zu Beginn jeder Videoschausitzung angewendet. Die während der Sitzung vorgenommenen Änderungen bestehen bis zum Ende. Immer eingeschaltete Anzeigemodi werden angewendet, wenn Sie zu einem neuen Video wechseln, unabhängig davon, ob der Anzeigemodus beim Betrachten des vorherigen Videos geändert wird.
   Subscription Settings:
     Subscription Settings: Abo
     Fetch Feeds from RSS: Abos via RSS abrufen
@@ -498,6 +504,15 @@ Settings:
     Export search history: Suchverlauf exportieren
     All search history has been successfully imported: Der gesamte Suchverlauf wurde erfolgreich importiert
     All search history has been successfully exported: Der gesamte Suchverlauf wurde erfolgreich exportiert
+    Settings File: Einstellungsdatei
+    Import Settings: Einstellungen importieren
+    Export Settings: Einstellungen exportieren
+    Settings Tooltip: Einstellungen, die Betriebssystem-/benutzerspezifisch oder experimentell sind, können nicht exportiert oder importiert werden (z. B. Proxy, externer Player, Screenshot-Ordner...)
+    All settings have been successfully imported: Alle Einstellungen wurden erfolgreich importiert
+    All settings have been successfully exported: Alle Einstellungen wurden erfolgreich exportiert
+    Setting object has insufficient data, skipping item: Das Objekt enthält unzureichende Daten, Element wird übersprungen
+    Unknown setting key: 'Unbekannter Einstellungsschlüssel: {key}'
+    Non-transferable setting key: 'Nicht übertragbarer Einstellungsschlüssel: {key}'
   Distraction Free Settings:
     Hide Live Chat: Live-Chat ausblenden
     Hide Popular Videos: Beliebte Videos ausblenden
@@ -618,7 +633,6 @@ About:
   Website: Website
   Credits: Danksagungen
   FAQ: Häufig gestellte Fragen
-  Email: E-Mail
   Beta: Beta
   Donate: Spenden
   Help: Hilfe
@@ -700,6 +714,7 @@ Channel:
   Courses:
     This channel does not currently have any courses: Dieser Kanal hat derzeit keine Kurse
     Courses: Kurse
+  View All: Alles anzeigen
 Video:
   Open in YouTube: In YouTube öffnen
   Copy YouTube Link: YouTube-Link kopieren
@@ -818,6 +833,8 @@ Video:
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Verbleibende SABR-Wartezeit: {remindingTimeSeconds}s'
     'Remaining preroll-ad time: {remindingTimeSeconds}s': 'Verbleibende Werbezeit: {remindingTimeSeconds}s'
   Private: Private Videos können in FreeTube nicht angesehen werden, da sie Google-Anmeldung und den Besitz des Videos erfordern.
+  Collapse Playlist: Wiedergabeliste ausblenden
+  Expand Playlist: Wiedergabeliste einblenden
 Playlist:
   #& About
   View Full Playlist: Vollständige Playlist ansehen
@@ -868,8 +885,7 @@ Mini Player: Mini-Video-Player
 Comments:
   Comments: Kommentare
   Click to View Comments: Kommentare anzeigen
-  Getting comment replies, please wait: Antworten auf Kommentare werden geladen, bitte warten
-  Hide Comments: Kommentare ausblenden
+  Hide Comments: Kommentar ausblenden | Kommentare ausblenden
   # Context: View 10 Replies, View 1 Reply
   There are no comments available for this video: Keine Kommentare zu diesem Video vorhanden
   Load More Comments: Weitere Kommentare laden
@@ -883,9 +899,10 @@ Comments:
   Hearted: Gefällt mir
   Subscribed: Abonniert
   There are no comments available for this post: Keine Kommentare für diesen Beitrag vorhanden
-  Hide {replyCount} replies: 1 Antwort ausblenden | {replyCount} Antworten ausblenden
+  Hide Replies: Antworten ausblenden
   View 1 reply from {channelName}: 1 Antwort von {channelName} ansehen
   View {replyCount} replies from {channelName} and others: '{replyCount} Antworten von {channelName} und anderen ansehen'
+  Loading replies: Antworten laden...
 Up Next: Nächster Titel
 
 # Toast Messages
@@ -953,7 +970,7 @@ Version {versionNumber} is now available!  Click for more details: Version {vers
 Tooltips:
   General Settings:
     Thumbnail Preference: Alle Vorschaubilder in FreeTube werden verpixelt, versteckt oder durch ein Einzelbild aus dem Video ersetzt, anstatt das Standard-Vorschaubild anzuzeigen.
-    Invidious Instance: Die Invidious-Instanz, mit der sich FreeTube für API-Aufrufe verbinden wird.
+    Invidious Instance: Die Invidious-Instanz, mit der sich FreeTube für API-Aufrufe verbinden wird. Änderungen an dieser Einstellung gelten nur für das aktuelle Fenster, es sei denn, Sie legen diese Instanz als Standard fest.
     Fallback to Non-Preferred Backend on Failure: Wenn deine bevorzugte API ein Problem hat, wird FreeTube automatisch versuchen, deine nicht-bevorzugte API als Ausweichmethode zu verwenden, wenn sie aktiviert ist.
     Preferred API Backend: Wähle das Backend aus, welches FreeTube zum Laden der Daten nutzen soll. Die lokale API ist ein eingebauter Extrahierer. Die Invidious-API erfordert einen Invidious-Server, zu dem eine Verbindung hergestellt werden muss.
     Region for Trending: Die Trendregion erlaubt es dir auszuwählen, aus welchem Land die Trends angezeigt werden sollen.

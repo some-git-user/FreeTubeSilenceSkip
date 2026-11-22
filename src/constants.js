@@ -4,6 +4,7 @@ const IpcChannels = {
   DISABLE_PROXY: 'disable-proxy',
   GET_SYSTEM_LOCALE: 'get-system-locale',
   GET_NAVIGATION_HISTORY: 'get-navigation-history',
+  IS_WAYLAND_PLATFORM: 'is-wayland-platform',
   STOP_POWER_SAVE_BLOCKER: 'stop-power-save-blocker',
   START_POWER_SAVE_BLOCKER: 'start-power-save-blocker',
   CREATE_NEW_WINDOW: 'create-new-window',
@@ -66,6 +67,8 @@ const DBActions = {
   HISTORY: {
     UPDATE_WATCH_PROGRESS: 20,
     UPDATE_PLAYLIST: 21,
+    UNSET_PLAYLIST_FOR_VIDEOS: 22,
+    UNSET_PLAYLISTS: 23
   },
 
   PROFILES: {
@@ -271,6 +274,32 @@ const SilenceSkip = {
   RESUME_GRACE_PERIOD_MS: 60, // Hold normal speed briefly after detected sound to avoid clipping quiet speech onsets.
 }
 
+const LIGHT_BASE_THEMES = [
+  'light',
+  'pastelPink',
+  'catppuccinLatte',
+  'everforestLightHard',
+  'everforestLightMedium',
+  'everforestLightLow',
+  'gruvboxLight',
+  'solarizedLight',
+]
+
+const DARK_BASE_THEMES = [
+  'dark',
+  'black',
+  'nordic',
+  'hotPink',
+  'catppuccinFrappe',
+  'catppuccinMocha',
+  'dracula',
+  'everforestDarkHard',
+  'everforestDarkMedium',
+  'everforestDarkLow',
+  'gruvboxDark',
+  'solarizedDark',
+]
+
 export {
   IpcChannels,
   DBActions,
@@ -286,4 +315,6 @@ export {
   SEARCH_RESULTS_DISPLAY_LIMIT,
   MIXED_SEARCH_HISTORY_ENTRIES_DISPLAY_LIMIT,
   ABOUT_BITCOIN_ADDRESS,
+  LIGHT_BASE_THEMES,
+  DARK_BASE_THEMES,
 }

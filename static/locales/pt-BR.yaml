@@ -38,6 +38,7 @@ Global:
     Watching Count: 1 assistindo | {count} assistindo
     Like Count: 1 curtida | {count} curtidas
     Comment Count: 1 comentário | {count} comentários
+    Replies Remaining: "{' '}(1 restante) | {' '}({count} restantes)"
 Search / Go to URL: 'Buscar ou digite um URL'
   # In Filter Button
 Search Filters:
@@ -97,6 +98,8 @@ Subscriptions:
   All Subscription Tabs Hidden: Todas as guias de inscrição estão ocultas. Para ver o conteúdo aqui, desoculte algumas guias na seção "{subsection}" em "{settingsSection}".
   Load More Posts: Carregar mais postagens
   Empty Posts: Atualmente, os canais em que você está inscrito não possuem postagens.
+  Posts:
+    RSS Message: O YouTube não disponibiliza feeds RSS para postagens. Desative a configuração "{rssSetting}" para visualizar as postagens ou ative a configuração "{hideSetting}" para ocultar esta aba.
 Trending:
   Trending: 'Em alta'
   Trending Tabs: Guias em destaque
@@ -187,6 +190,8 @@ User Playlists:
   Export Playlist: Exportar esta playlist
   TotalTimePlaylist: 'Tempo total: {duration}'
   Export list of URLs: Exportar lista de URLs
+  Move Video to the Top: Mover Vídeo Pro Topo
+  Move Video to the Bottom: Mover Vídeo pro Final
 History:
   # On History Page
   History: 'Histórico'
@@ -422,6 +427,9 @@ Settings:
       Full Screen: Tela cheia
       Picture in Picture: Picture in Picture (PiP)
       External Player: Player externo ({externalPlayerName})
+      Full Window (Always On): Janela Cheia (Sempre Ativa)
+      Full Screen (Always On): Tela Cheia (Sempre Ativa)
+      Tooltip: A maioria dos modos de exibição padrão é aplicada apenas no início de cada sessão de reprodução. As alterações feitas durante a sessão permanecem até que ela termine. Os modos de exibição sempre ativos são aplicados sempre que você alterna para um novo vídeo, independentemente de quaisquer alterações no modo de exibição feitas ao assistir ao vídeo anterior.
   Subscription Settings:
     Subscription Settings: 'Inscrições'
     Fetch Feeds from RSS: Buscar Informações através de RSS
@@ -497,6 +505,15 @@ Settings:
     Export search history: Exportar histórico de buscas
     All search history has been successfully imported: Todo o histórico de buscas foi importado com sucesso
     All search history has been successfully exported: Todo o histórico de buscas foi exportado com sucesso
+    Settings File: Arquivo de Configurações
+    Import Settings: Importar Configurações
+    Export Settings: Exportar Configurações
+    Settings Tooltip: 'Configurações específicas do OS/usuário ou experimentais não podem ser exportadas ou importadas (ex.: proxy, reprodutor externo, pasta de capturas de tela...)'
+    All settings have been successfully imported: Todas as configurações foram importadas com sucesso
+    All settings have been successfully exported: Todas as configurações foram exportadas com sucesso
+    Setting object has insufficient data, skipping item: O objeto de configuração possui dados insuficientes, ignorando o item
+    Unknown setting key: 'Chave de configuração desconhecida: {key}'
+    Non-transferable setting key: 'Chave de configuração não transferível: {key}'
   Distraction Free Settings:
     Hide Live Chat: Ocultar chat ao vivo
     Hide Popular Videos: Ocultar vídeos populares
@@ -594,6 +611,7 @@ Settings:
     Parental Control Settings: Controle dos Pais
     Hide Unsubscribe Button: Ocultar botão "Cancelar inscrição"
     Hide Uploader on Watch page: Ocultar o nome do autor na página de reprodução
+    Disable Channel Links: Desativar Links de Canais
   Experimental Settings:
     Experimental Settings: Experimental
     Warning: Essas configurações são experimentais, elas podem causar travamentos enquanto habilitadas. Fazer backups é altamente recomendado. Use por sua conta e risco!
@@ -629,7 +647,6 @@ About:
   room rules: regras da sala
   Chat on Matrix: Chat no Matrix
   Mastodon: Mastodon
-  Email: E-mail
   Website: Site
   Please check for duplicates before posting: Por favor verifique se este problema já foi informado
   Discussions: Discussões
@@ -698,6 +715,7 @@ Channel:
   Courses:
     This channel does not currently have any courses: Este canal não tem nenhum curso no momento
     Courses: Cursos
+  View All: Ver Todos
 Video:
   Mark As Watched: 'Marcar como assistido'
   Remove From History: 'Remover do histórico'
@@ -814,6 +832,9 @@ Video:
     'Remaining preroll-ad time: {remindingTimeSeconds}s': 'Tempo restante para anúncios antes da reprodução: {remindingTimeSeconds}s'
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Tempo restante de espera do SABR: {remindingTimeSeconds}s'
   Popout Live Chat: Chat flutuante
+  Private: Vídeos privados não podem ser assistidos no FreeTube, pois exigem login do Google e propriedade do vídeo.
+  Collapse Playlist: Recolher playlist
+  Expand Playlist: Expandir playlist
 Playlist:
   #& About
   View Full Playlist: 'Mostrar playlist completa'
@@ -864,7 +885,6 @@ Mini Player: 'Mini Player'
 Comments:
   Comments: 'Comentários'
   Click to View Comments: 'Mostrar comentários'
-  Getting comment replies, please wait: 'Buscando respostas, por favor, aguarde'
   Hide Comments: 'Ocultar comentários'
   # Context: View 10 Replies, View 1 Reply
   There are no comments available for this video: 'Não há comentários disponíveis neste vídeo'
@@ -879,9 +899,10 @@ Comments:
   View {replyCount} replies: Mostrar 1 resposta | Mostrar {replyCount} respostas
   Subscribed: Inscrito
   There are no comments available for this post: Não há comentários disponíveis para esta postagem
-  Hide {replyCount} replies: Ocultar 1 resposta | Ocultar {replyCount} respostas
+  Hide Replies: Ocultar resposta | Ocultar respostas
   View 1 reply from {channelName}: Mostrar 1 resposta de {channelName}
   View {replyCount} replies from {channelName} and others: Mostrar {replyCount} respostas de {channelName} e outros
+  Loading replies: Carregando respostas...
 Up Next: 'Próximo'
 
 # Toast Messages
@@ -957,7 +978,7 @@ Tooltips:
     Skip by Scrolling Over Video Player: Use o botão de rolagem do mouse para avançar ou retroceder o vídeo, estilo MPV.
   General Settings:
     Region for Trending: A região de tendências permite que você escolha os vídeos em alta do país que deseja exibir.
-    Invidious Instance: A instância Invidious à qual o FreeTube se conectará para chamadas de API.
+    Invidious Instance: A instância Invidious à qual o FreeTube se conectará para chamadas de API. As alterações nesta configuração aplicam-se apenas à janela atual, a menos que você defina esta instância como padrão.
     Thumbnail Preference: Todas as miniaturas no FreeTube serão substituídas por um quadro do vídeo, desfocado ou oculto, em vez da miniatura padrão.
     Fallback to Non-Preferred Backend on Failure: Quando sua API preferida tiver um problema, o FreeTube tentará automaticamente usar sua API não preferencial como método alternativo quando habilitada.
     Preferred API Backend: Escolha o mecanismo de processamento que o FreeTube usa para obter os dados. A API local é um extrator integrado. A API Invidious requer um servidor Invidious para se conectar.

@@ -623,12 +623,11 @@ About:
   GitHub releases: Versões do GitHub
   Help: Ajuda
   FreeTube Wiki: Wiki FreeTube
-  FAQ: FAQ
+  FAQ: Perguntas frequentes
   Report a problem: Reportar um problema
   GitHub issues: Problemas no GitHub
   Please check for duplicates before posting: Antes de reportar verifique se alguém já reportou o mesmo problema
   Website: Página web
-  Email: E-mail
   Mastodon: Mastodon
   Chat on Matrix: Conversa no Matrix
   room rules: regras da sala de conversa
@@ -911,7 +910,6 @@ Mini Player: Mini-reprodutor
 Comments:
   Comments: Comentários
   Click to View Comments: Clicar para ver os comentários
-  Getting comment replies, please wait: A obter respostas ao comentário, por favor aguarde
   There are no more comments for this video: Não há mais comentários para este vídeo
   Hide Comments: Ocultar comentários
   Top comments: Melhores comentários
@@ -926,7 +924,7 @@ Comments:
   Hearted: Favorito
   Subscribed: Subscrito
   There are no comments available for this post: Não existem comentários para esta publicação
-  Hide {replyCount} replies: Esconder 1 resposta | Esconder {replyCount} respostas
+  Hide Replies: Esconder resposta | Esconder respostas
   View 1 reply from {channelName}: Ver 1 resposta de {channelName}
   View {replyCount} replies from {channelName} and others: Ver {replyCount} respostas de {channelName} e outros
 Up Next: Próximo

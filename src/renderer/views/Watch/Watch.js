@@ -40,6 +40,7 @@ import {
 } from '../../helpers/api/invidious'
 import { sortCaptions } from '../../helpers/player/utils'
 import { MANIFEST_TYPE_SABR } from '../../helpers/player/SabrManifestParser'
+import { useI18n } from 'vue-i18n'
 
 /**
  * @typedef {{
@@ -87,6 +88,11 @@ export default defineComponent({
     }
 
     next()
+  },
+  setup: function () {
+    const { t, locale } = useI18n()
+
+    return { t, currentLocale: locale }
   },
   data: function () {
     return {
@@ -256,9 +262,6 @@ export default defineComponent({
       return (!this.watchingPlaylist && !this.hideRecommendedVideos && !!this.nextRecommendedVideo) ||
       (this.watchingPlaylist && !this.$refs.watchVideoPlaylist?.shouldStopDueToPlaylistEnd)
     },
-    currentLocale: function () {
-      return this.$i18n.locale
-    },
     hideChapters: function () {
       return this.$store.getters.getHideChapters
     },
@@ -371,6 +374,7 @@ export default defineComponent({
 
       this.checkIfTimestamp()
       this.checkIfPlaylist()
+      this.setViewingModeOnRouteChange()
 
       switch (this.backendPreference) {
         case 'local':
@@ -462,13 +466,26 @@ export default defineComponent({
           this.useTheatreMode = this.theatrePossible
           break
         case 'fullscreen':
+        case 'fullscreen_always_on':
           this.startNextVideoInFullscreen = true
           break
         case 'fullwindow':
+        case 'fullwindow_always_on':
           this.startNextVideoInFullwindow = true
           break
         case 'pip':
           this.startNextVideoInPip = true
+      }
+    },
+
+    setViewingModeOnRouteChange: function () {
+      switch (this.defaultViewingMode) {
+        case 'fullscreen_always_on':
+          this.startNextVideoInFullscreen = true
+          break
+        case 'fullwindow_always_on':
+          this.startNextVideoInFullwindow = true
+          break
       }
     },
 
@@ -495,7 +512,7 @@ export default defineComponent({
         if (playabilityStatus.status === 'LOGIN_REQUIRED' && playabilityStatus.error_screen?.reason?.text === 'Private video') {
           // Private videos cannot be played in FreeTube, as they require to be logged as the owner of the video
           // so there is no point continuing or trying any other backends as it will always fail
-          this.errorMessage = this.$t('Video.Private')
+          this.errorMessage = this.t('Video.Private')
           this.thumbnail = this.getUnavailableVideoThumbnail()
           this.isLoading = false
           this.updateTitle()
@@ -665,7 +682,7 @@ export default defineComponent({
           if (playabilityStatus.error_screen?.offer_id === 'sponsors_only_video') {
             // Members-only videos can only be watched while logged into a Google account that is a paid channel member
             // so there is no point trying any other backends as it will always fail
-            this.errorMessage = this.$t('Video.MembersOnly')
+            this.errorMessage = this.t('Video.MembersOnly')
             this.customErrorIcon = ['fas', 'money-check-dollar']
             this.isLoading = false
             this.updateTitle()
@@ -673,14 +690,14 @@ export default defineComponent({
           } else if (playabilityStatus.reason === 'Sign in to confirm your age' || (result.has_trailer && result.getTrailerInfo() === null)) {
             // Age-restricted videos can only be watched while logged into a Google account that is age-verified
             // so there is no point trying any other backends as it will always fail
-            this.errorMessage = this.$t('Video.AgeRestricted')
+            this.errorMessage = this.t('Video.AgeRestricted')
             this.isLoading = false
             this.updateTitle()
             return
           } else if (isDrmProtected) {
             // DRM protected videos (e.g. movies) cannot be played in FreeTube,
             // as they require the proprietary and closed source Wideview CDM which is understandably not included in standard Electron builds
-            this.errorMessage = this.$t('Video.DRMProtected')
+            this.errorMessage = this.t('Video.DRMProtected')
             this.isLoading = false
             this.updateTitle()
             return
@@ -689,7 +706,7 @@ export default defineComponent({
           let errorText
 
           if (playabilityStatus.reason === BOT_MESSAGE || playabilityStatus.reason === 'Please sign in') {
-            errorText = this.$t('Video.IP block')
+            errorText = this.t('Video.IP block')
           } else {
             errorText = `[${playabilityStatus.status}] ${playabilityStatus.reason}`
 
@@ -792,7 +809,7 @@ export default defineComponent({
             // Displays when less than a minute remains
             // Looks better than `Premieres in x seconds`
             if (upcomingTimeLeft < 1) {
-              this.upcomingTimeLeft = this.$t('Video.Published.In less than a minute').toLowerCase()
+              this.upcomingTimeLeft = this.t('Video.Published.In less than a minute').toLowerCase()
             } else {
               // TODO a I18n entry for time format might be needed here
               this.upcomingTimeLeft = new Intl.RelativeTimeFormat(this.currentLocale).format(upcomingTimeLeft, timeUnit)
@@ -861,7 +878,7 @@ export default defineComponent({
           } else {
             // video might be region locked or something else. This leads to no formats being available
             showToast(
-              this.$t('This video is unavailable because of missing formats. This can happen due to country unavailability.'),
+              this.t('This video is unavailable because of missing formats. This can happen due to country unavailability.'),
               7000
             )
             this.handleVideoEnded()
@@ -927,16 +944,22 @@ export default defineComponent({
           }
         }
 
+        if (this.activeFormat === 'legacy' && (this.isLive || this.isPostLiveDvr || this.legacyFormats.length === 0)) {
+          // Legacy wanted as default but unavailable
+          showToast(this.t('Change Format.Legacy formats are not available for this video'))
+          this.handleActiveFormatUnavailable()
+        }
+
         this.isLoading = false
         this.updateTitle()
       } catch (err) {
         console.error(err)
         if (this.backendPreference === 'local' && this.backendFallback && !err.toString().includes('private') && !err.toString().includes('unavailable')) {
-          const errorMessage = this.$t('Local API Error (Click to copy)')
+          const errorMessage = this.t('Local API Error (Click to copy)')
           showToast(`${errorMessage}: ${err}`, 10000, () => {
             copyToClipboard(err)
           })
-          showToast(this.$t('Falling back to Invidious API'))
+          showToast(this.t('Falling back to Invidious API'))
           this.getVideoInformationInvidious()
         } else {
           this.isLoading = false
@@ -1123,11 +1146,11 @@ export default defineComponent({
         .catch(err => {
           console.error(err)
           if (process.env.SUPPORTS_LOCAL_API && this.backendPreference === 'invidious' && this.backendFallback) {
-            const errorMessage = this.$t('Invidious API Error (Click to copy)')
+            const errorMessage = this.t('Invidious API Error (Click to copy)')
             showToast(`${errorMessage}: ${err}`, 10000, () => {
               copyToClipboard(err)
             })
-            showToast(this.$t('Falling back to Local API'))
+            showToast(this.t('Falling back to Local API'))
             this.getVideoInformationLocal()
           } else {
             this.isLoading = false
@@ -1248,7 +1271,7 @@ export default defineComponent({
     handleWatchProgressManualSave() {
       // Should be called by manual action, settings should be checked in UI
       this._saveWatchProgress()
-      showToast(this.$t('Video.Watched Progress Saved'))
+      showToast(this.t('Video.Watched Progress Saved'))
     },
     handleWatchProgressAutoSave() {
       if (!this.rememberHistory || !this.autosaveWatchedProgress) { return }
@@ -1350,6 +1373,16 @@ export default defineComponent({
 
       // `playlistId` present
       if (this.selectedUserPlaylist != null) {
+        // If the page is accessed through navigation via router history, 'playlistId' is still specified
+        // but the video could have been removed from the playlist in the meantime
+        if (!this.selectedUserPlaylist.videos.some((video) => video.videoId === this.videoId)) {
+          this.playlistId = ''
+          this.playlistType = ''
+          this.playlistItemId = null
+          this.watchingPlaylist = false
+          return
+        }
+
         // If playlist ID matches a user playlist, it must be user playlist
         this.playlistType = 'user'
         this.watchingPlaylist = true
@@ -1405,7 +1438,7 @@ export default defineComponent({
       }
 
       if (this.manifestSrc === null) {
-        showToast(this.$t('Change Format.Dash formats are not available for this video'))
+        showToast(this.t('Change Format.Dash formats are not available for this video'))
         return
       }
 
@@ -1418,7 +1451,7 @@ export default defineComponent({
       }
 
       if (this.isLive || this.isPostLiveDvr || this.legacyFormats.length === 0) {
-        showToast(this.$t('Change Format.Legacy formats are not available for this video'))
+        showToast(this.t('Change Format.Legacy formats are not available for this video'))
         return
       }
 
@@ -1435,7 +1468,7 @@ export default defineComponent({
         // The WEB HLS manifests only contain combined audio and video files, so we can't do audio only
         // The IOS HLS manifests have audio-only streams
           this.manifestMimeType === MANIFEST_TYPE_HLS && !this.manifestSrc.includes('/demuxed/1'))) {
-        showToast(this.$t('Change Format.Audio formats are not available for this video'))
+        showToast(this.t('Change Format.Audio formats are not available for this video'))
         return
       }
 
@@ -1449,7 +1482,7 @@ export default defineComponent({
       }
 
       if (this.blockVideoAutoplay) {
-        showToast(this.$t('Autoplay Interruption Timer',
+        showToast(this.t('Autoplay Interruption Timer',
           this.defaultAutoplayInterruptionIntervalHours,
           {
             autoplayInterruptionIntervalHours: this.defaultAutoplayInterruptionIntervalHours
@@ -1485,7 +1518,7 @@ export default defineComponent({
             this.$router.push({
               path: `/watch/${nextVideoId}`
             })
-            showToast(this.$t('Playing Next Video'))
+            showToast(this.t('Playing Next Video'))
           }
         }
         this.playNextTimeout = null
@@ -1496,7 +1529,7 @@ export default defineComponent({
         showToast(
           ({ remainingMs }) => {
             const countDownTimeLeftInSecond = remainingMs / 1000
-            return this.$t('Playing Next Video Interval', { nextVideoInterval: countDownTimeLeftInSecond }, countDownTimeLeftInSecond)
+            return this.t('Playing Next Video Interval', { nextVideoInterval: countDownTimeLeftInSecond }, countDownTimeLeftInSecond)
           },
           // So that we don't see last countdown text like 0/N
           nextVideoInterval * 1000,
@@ -1514,7 +1547,7 @@ export default defineComponent({
         this.$router.push({
           path: `/watch/${this.nextRecommendedVideo.videoId}`
         })
-        showToast(this.$t('Playing Next Video'))
+        showToast(this.t('Playing Next Video'))
       }
     },
 
@@ -1529,7 +1562,7 @@ export default defineComponent({
       this.playNextTimeout = null
 
       if (!hideToast) {
-        showToast(this.$t('Canceled next video autoplay'))
+        showToast(this.t('Canceled next video autoplay'))
       }
     },
 
@@ -1587,6 +1620,10 @@ export default defineComponent({
         }
       }
 
+      this.handleActiveFormatUnavailable()
+    },
+
+    handleActiveFormatUnavailable: function() {
       if (this.isLive || this.isPostLiveDvr) {
         // live streams don't have legacy formats, so only switch between dash and audio
 
@@ -1822,7 +1859,7 @@ export default defineComponent({
       let translationName, translationCode
       // otherwise just fallback to the FreeTube display language and hope that YouTube will be able to handle it
       if (!translationLanguage) {
-        translationName = this.$t('Locale Name')
+        translationName = this.t('Locale Name')
         translationCode = userLanguages.values().next().value
       } else {
         translationName = translationLanguage.language_name.text
@@ -1848,7 +1885,7 @@ export default defineComponent({
       url.searchParams.set('fmt', 'srt')
       url.searchParams.set('tlang', translationCode)
 
-      const label = this.$t('Video.Player.TranslatedCaptionTemplate', {
+      const label = this.t('Video.Player.TranslatedCaptionTemplate', {
         language: translationName,
         originalLanguage: trackToTranslate.name.text
       })

@@ -1,6 +1,6 @@
 import { computed, defineComponent, nextTick, onBeforeUnmount, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import shaka from 'shaka-player'
-import { useI18n } from '../../composables/use-i18n-polyfill'
+import { useI18n } from 'vue-i18n'
 
 import store from '../../store/index'
 import { KeyboardShortcuts, SilenceSkip } from '../../../constants'
@@ -1049,11 +1049,12 @@ export default defineComponent({
       const classList = event.target.classList
 
       if (classList.contains('shaka-scrim-container') ||
-        classList.contains('shaka-fast-foward-container') ||
+        classList.contains('shaka-fast-forward-container') ||
         classList.contains('shaka-rewind-container') ||
         classList.contains('shaka-play-button-container') ||
         classList.contains('shaka-play-button') ||
-        classList.contains('shaka-controls-container')) {
+        classList.contains('shaka-controls-container') ||
+        classList.contains('shaka-spacer')) {
         //
 
         if (event.ctrlKey || event.metaKey) {
@@ -1785,6 +1786,7 @@ export default defineComponent({
 
       /** @type {object[]} */
       const legacyFormats = props.legacyFormats
+      if (legacyFormats.length === 0) { return }
 
       const isPortrait = legacyFormats[0].height > legacyFormats[0].width
 
@@ -2582,7 +2584,7 @@ export default defineComponent({
      * @param {KeyboardEvent} event
      */
     function keyboardShortcutHandler(event) {
-      if (!player || !hasLoaded.value) {
+      if (!player) {
         return
       }
 
@@ -2639,6 +2641,61 @@ export default defineComponent({
       const playbackRate = isSilenceSkipEnabled.value ? trickPlayNormalSpeed.value : player.getPlaybackRate()
 
       switch (event.key.toLowerCase()) {
+        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.FULLSCREEN:
+          // Toggle full screen
+          event.preventDefault()
+          ui.getControls().toggleFullScreen()
+          blurTooltipButtons()
+          break
+        case 'escape':
+          // Exit full window
+          if (fullWindowEnabled.value) {
+            event.preventDefault()
+
+            events.dispatchEvent(new CustomEvent('setFullWindow', {
+              detail: false
+            }))
+          }
+          break
+        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.FULLWINDOW:
+          // Toggle full window mode
+          event.preventDefault()
+          events.dispatchEvent(new CustomEvent('setFullWindow', {
+            detail: !fullWindowEnabled.value
+          }))
+          blurTooltipButtons()
+          break
+        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.THEATRE_MODE:
+          // Toggle theatre mode
+          if (props.theatrePossible) {
+            event.preventDefault()
+
+            events.dispatchEvent(new CustomEvent('toggleTheatreMode', {
+              detail: !props.useTheatreMode
+            }))
+          }
+          blurTooltipButtons()
+          break
+        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.MUTE:
+          // Toggle mute only if metakey is not pressed
+          if (!event.metaKey) {
+            event.preventDefault()
+            const isMuted = !video_.muted
+            video_.muted = isMuted
+
+            const messageIcon = isMuted ? 'volume-mute' : 'volume-high'
+            const message = isMuted ? '0%' : `${Math.round(video_.volume * 100)}%`
+            showValueChange(message, messageIcon)
+          }
+          blurTooltipButtons()
+          break
+      }
+
+      if (!hasLoaded.value) {
+        return
+      }
+
+      switch (event.key.toLowerCase()) {
         case ' ':
         case 'spacebar': // older browsers might return spacebar instead of a space character
         case KeyboardShortcuts.VIDEO_PLAYER.PLAYBACK.PLAY:
@@ -2668,25 +2725,6 @@ export default defineComponent({
           // Increase playback rate by user configured interval
           event.preventDefault()
           changePlayBackRate(videoPlaybackRateInterval.value)
-          break
-        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.FULLSCREEN:
-          // Toggle full screen
-          event.preventDefault()
-          ui.getControls().toggleFullScreen()
-          blurTooltipButtons()
-          break
-        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.MUTE:
-          // Toggle mute only if metakey is not pressed
-          if (!event.metaKey) {
-            event.preventDefault()
-            const isMuted = !video_.muted
-            video_.muted = isMuted
-
-            const messageIcon = isMuted ? 'volume-mute' : 'volume-high'
-            const message = isMuted ? '0%' : `${Math.round(video_.volume * 100)}%`
-            showValueChange(message, messageIcon)
-          }
-          blurTooltipButtons()
           break
         case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.CAPTIONS: {
           // Toggle caption/subtitles
@@ -2820,35 +2858,6 @@ export default defineComponent({
             video_.currentTime = seekRange.end
             showOverlayControls()
           }
-          break
-        case 'escape':
-          // Exit full window
-          if (fullWindowEnabled.value) {
-            event.preventDefault()
-
-            events.dispatchEvent(new CustomEvent('setFullWindow', {
-              detail: false
-            }))
-          }
-          break
-        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.FULLWINDOW:
-          // Toggle full window mode
-          event.preventDefault()
-          events.dispatchEvent(new CustomEvent('setFullWindow', {
-            detail: !fullWindowEnabled.value
-          }))
-          blurTooltipButtons()
-          break
-        case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.THEATRE_MODE:
-          // Toggle theatre mode
-          if (props.theatrePossible) {
-            event.preventDefault()
-
-            events.dispatchEvent(new CustomEvent('toggleTheatreMode', {
-              detail: !props.useTheatreMode
-            }))
-          }
-          blurTooltipButtons()
           break
         case KeyboardShortcuts.VIDEO_PLAYER.GENERAL.TAKE_SCREENSHOT:
           if (enableScreenshot.value && props.format !== 'audio') {
@@ -3124,7 +3133,7 @@ export default defineComponent({
             forceAspectRatio.value = firstVariant.width / firstVariant.height < 1.5
           }
         })
-      } else {
+      } else if (props.legacyFormats.length > 0) {
         // force the player aspect ratio to 16:9 to avoid overflowing the layout, when the video is too tall
 
         const firstFormat = props.legacyFormats[0]

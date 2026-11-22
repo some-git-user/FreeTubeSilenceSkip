@@ -27,6 +27,7 @@ Forward: 'Naprej'
 # Anything shared among components / views should be put here
 Global:
   Videos: 'Videoposnetki'
+
   Sort By: 'Razvrstitev'
 
   Live: V živo
@@ -40,6 +41,8 @@ Search Filters:
   Search Filters: 'Iskalni filtri'
   Prioritize:
     Most Relevant: 'Ustreznost'
+    Prioritize: Prednost
+    Popularity: Priljubljenost
   Time:
     Time: 'Čas'
     Any Time: 'Vsak čas'
@@ -65,6 +68,17 @@ Search Filters:
   Fetch more results: 'Pridobi več rezultatov'
 # Sidebar
   There are no more results for this search: Nič več rezultatov
+  Features:
+    Features: Lastnosti
+    HD: HD
+    Subtitles: Podnapisi
+    Creative Commons: Creative Commons
+    3D: 3D
+    Live: V živo
+    4K: 4K
+    Location: Lokacija
+    HDR: HDR
+    VR180: VR180
 Subscriptions:
     # On Subscriptions Page
   Subscriptions: 'Naročnine'
@@ -324,7 +338,6 @@ About:
   room rules: sobna pravila
   Chat on Matrix: Klepetajte na Matrixu
   Mastodon: Mastodon
-  Email: E-pošta
   Website: Spletna stran
   Please check for duplicates before posting: Prosimo, da pred pošiljanjem preverite, da ni dvojnikov
   GitHub issues: GitHub težave
@@ -398,6 +411,8 @@ Channel:
     About: 'O kanalu'
     Channel Description: 'Opis kanala'
     Featured Channels: 'Izpostavljeni kanali'
+  Courses:
+    Courses: Tečaji
 Video:
   Mark As Watched: 'Označi kot ogledano'
   Remove From History: 'Izbriši iz zgodovine'
@@ -476,7 +491,6 @@ Mini Player: 'Mini predvajalnik'
 Comments:
   Comments: 'Komentarji'
   Click to View Comments: 'Kliknite za prikaz komentarjev'
-  Getting comment replies, please wait: 'Pridobivanje odgovorov na komentar. Prosimo, počakajte'
   There are no more comments for this video: 'Za ta posnetek ni več komentarjev'
   Hide Comments: 'Skrij komentarje'
   # Context: View 10 Replies, View 1 Reply
@@ -486,6 +500,7 @@ Comments:
   Top comments: Najbolje ocenjeni komentarji
   Show More Replies: Pokaži več odgovorov
   Member: Član
+  Hide Replies: Skrij odgovor | Skrij odgovore
 Up Next: 'Naslednje na sporedu'
 
 # Toast Messages

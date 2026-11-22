@@ -36,7 +36,8 @@
             :key="channel.id"
             class="channel"
           >
-            <router-link
+            <component
+              :is="enableChannelLinks ? 'router-link' : 'span'"
               tabindex="-1"
               class="thumbnailContainer"
               :to="`/channel/${channel.id}`"
@@ -53,15 +54,16 @@
                 class="channelThumbnail"
                 :icon="['fas', 'circle-user']"
               />
-            </router-link>
-            <router-link
+            </component>
+            <component
+              :is="enableChannelLinks ? 'router-link' : 'span'"
               class="channelName"
               dir="auto"
               :title="channel.name"
               :to="`/channel/${channel.id}`"
             >
               {{ channel.name }}
-            </router-link>
+            </component>
             <div
               v-if="!hideUnsubscribeButton"
               class="unsubscribeContainer"
@@ -91,7 +93,7 @@ import FtSubscribeButton from '../../components/FtSubscribeButton/FtSubscribeBut
 import { invidiousGetChannelInfo, youtubeImageUrlToInvidious, invidiousImageUrlToInvidious } from '../../helpers/api/invidious'
 import { getLocalChannel, parseLocalChannelHeader } from '../../helpers/api/local'
 import { ctrlFHandler, debounce } from '../../helpers/utils'
-import { useI18n } from '../../composables/use-i18n-polyfill.js'
+import { useI18n } from 'vue-i18n'
 import store from '../../store/index'
 
 const route = useRoute()
@@ -288,5 +290,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', keyboardShortcutHandler)
 })
+
+const enableChannelLinks = computed(() => !store.getters.getDisableChannelLinks)
+
 </script>
 <style scoped src="./SubscribedChannels.css" />

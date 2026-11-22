@@ -38,6 +38,7 @@ Global:
     Watching Count: 1 人正在观看 | {count} 人正在观看
     Like Count: 1 个赞 | {count} 个赞
     Comment Count: 1 条评论 | {count} 条评论
+    Replies Remaining: （还有 1 条）|（还有 {count} 条）
 Search / Go to URL: '搜索 / 前往URL'
   # In Filter Button
 Search Filters:
@@ -97,6 +98,8 @@ Subscriptions:
   All Subscription Tabs Hidden: 所有的订阅标签页均被隐藏。要在此查看内容，请在 "{subsection}" 部分取消隐藏某些标签页，此部分位于 "{settingsSection}"。
   Load More Posts: 加载更多帖子
   Empty Posts: 你已订阅的频道当前没有任何帖子。
+  Posts:
+    RSS Message: YouTube 不提供帖子的 RSS 源。禁用 "{rssSetting}" 设置查看帖子或启用 "{hideSetting}" 设置隐藏此标签页。
 Trending:
   Trending: '热门'
   Trending Tabs: 流行标签
@@ -187,6 +190,8 @@ User Playlists:
   The playlist has been successfully exported: 成功导出播放清单
   TotalTimePlaylist: 总时间：{duration}
   Export list of URLs: 导出 URL 列表
+  Move Video to the Top: 移动视频到顶部
+  Move Video to the Bottom: 移动视频到底部
 History:
   # On History Page
   History: '历史记录'
@@ -422,6 +427,9 @@ Settings:
       External Player: 外部播放器({externalPlayerName})
       Theater: 影院
       Full Screen: 全屏
+      Full Window (Always On): 整个窗口（始终开启）
+      Full Screen (Always On): 整个屏幕（始终开启）
+      Tooltip: 多数默认观看模式仅在每个观看会话开始时应用。会话期间所做的更改持续到会话结束。每当切换到新视频时应用“始终开启”观看模式，不论观看上个视频时做了什么观看模式更改。
   Subscription Settings:
     Subscription Settings: '订阅'
     Fetch Feeds from RSS: 从RSS摘取推送
@@ -497,6 +505,15 @@ Settings:
     Export search history: 导出搜索历史
     All search history has been successfully imported: 成功导入了所有搜索历史
     All search history has been successfully exported: 成功导出了所有搜索历史
+    Settings File: 设置文件
+    Import Settings: 导入设置
+    Export Settings: 导出设置
+    Settings Tooltip: 无法导出或导入特定系统/用户的设置或实验性设置（如代理、外部播放器、屏幕截图文件夹…）
+    All settings have been successfully imported: 成功导入了所有设置
+    All settings have been successfully exported: 成功导出了所有设置
+    Setting object has insufficient data, skipping item: 设置对象数据不足，跳过项目
+    Unknown setting key: 未知的设置键：{key}
+    Non-transferable setting key: 不可传输的设置键：{key}
   Distraction Free Settings:
     Hide Popular Videos: 隐藏流行视频
     Hide Trending Videos: 隐藏热门视频
@@ -620,7 +637,6 @@ About:
   Source code: 源代码
   Beta: 测试版
   Website: 网站
-  Email: 电子邮件
   Donate: 捐款
   Credits: 贡献者
   Translate: 翻译
@@ -702,6 +718,7 @@ Channel:
   Courses:
     Courses: 课程
     This channel does not currently have any courses: 此频道当前没有任何课程
+  View All: 查看全部
 Video:
   Open in YouTube: '在YouTube中打开'
   Copy YouTube Link: '复制YouTube链接'
@@ -819,6 +836,8 @@ Video:
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 剩余 SABR 后退时间：{remindingTimeSeconds} 秒
   Popout Live Chat: 弹出式聊天
   Private: 无法在 FreeTube 中观看私密视频，因它们需要 Google 登录和视频所有权。
+  Collapse Playlist: 折叠播放列表
+  Expand Playlist: 展开播放列表
 Playlist:
   #& About
   View Full Playlist: '查看完整播放列表'
@@ -869,7 +888,6 @@ Mini Player: '迷你播放器'
 Comments:
   Comments: '评论'
   Click to View Comments: '点击观看评论'
-  Getting comment replies, please wait: '获取评论中，请稍候'
   Hide Comments: '隐藏评论'
   # Context: View 10 Replies, View 1 Reply
   There are no comments available for this video: '这个视频没有评论'
@@ -884,9 +902,10 @@ Comments:
   View {replyCount} replies: 查看 1 条回复|查看 {replyCount} 条回复
   Subscribed: 已订阅
   There are no comments available for this post: 此帖子没有评论
-  Hide {replyCount} replies: 隐藏 1 条回复| 隐藏 {replyCount} 条回复
+  Hide Replies: 隐藏回复
   View 1 reply from {channelName}: 查看 1 条来自 {channelName}的回复
   View {replyCount} replies from {channelName} and others: 查看 {replyCount} 条来自 {channelName} 和其他频道的回复
+  Loading replies: 正在加载回复…
 Up Next: 'Up Next'
 
 # Toast Messages
@@ -961,7 +980,7 @@ Tooltips:
     Scroll Playback Rate Over Video Player: 当光标位于视频上方时，按住 Control 键(Mac 上的 Command 键)，前后滚动鼠标滚轮，控制播放速度。按住 Control 键(Mac 上的 Command 键)，左键点击鼠标快速返回到默认播放速率(1x，除非在设置中改变了数值)。
     Skip by Scrolling Over Video Player: 使用滚轮跳过视频，MPV 风格。
   General Settings:
-    Invidious Instance: FreeTube 要连接到哪个 Invidious 实例进行 API 调用。
+    Invidious Instance: FreeTube 要连接到哪个 Invidious 实例进行 API 调用。更改此设置只应用到当前窗口，除非你将此实例设为默认。
     Thumbnail Preference: FreeTube 中所有缩略图会被替换为模糊不清或隐藏的视频帧而非默认缩略图。
     Fallback to Non-Preferred Backend on Failure: 当您的首选API有问题时，FreeTube将自动尝试使用您的非首选API 作为后备方案。
     Preferred API Backend: 选择FreeTube 要用于取得数据的后端。本地API 是内置提取器。Invidious API需要Invidious服务器才能连接。

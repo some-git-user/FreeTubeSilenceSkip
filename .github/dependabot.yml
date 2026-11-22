@@ -22,6 +22,7 @@ updates:
           - "neostandard"
           - "@intlify/eslint-plugin-vue-i18n"
           - "@stylistic/eslint-plugin"
+          - "globals"
       stylelint:
         patterns:
           - "stylelint"
@@ -48,3 +49,10 @@ updates:
     labels:
       - "PR: waiting for review"
       - "PR: dependencies"
+    groups:
+      "actions/cache":
+        patterns:
+          - "actions/cache/*"
+      "github/codeql-action":
+        patterns:
+          - "github/codeql-action/*"

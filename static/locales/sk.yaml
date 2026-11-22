@@ -34,6 +34,7 @@ Global:
     Watching Count: 1 sledujúci | {count} sledujúcich
     Like Count: 1 lajk | {count} lajkov
     Comment Count: 1 komentár | {count} komentárov
+    Replies Remaining: "{' '}(zostáva 1) | {' '}(zostáva {count})"
   Live: Naživo
   Posts: Príspevky
   Shorts: Krátke
@@ -97,6 +98,8 @@ Subscriptions:
   Error Channels: Kanály s chybami
   Empty Posts: Vaše odoberané kanály momentálne nemajú žiadne príspevky.
   Disabled Automatic Fetching: Vypli ste automatické načítanie odberov. Obnovte odbery, aby ste ich tu videli.
+  Posts:
+    RSS Message: YouTube neposkytuje RSS kanály pre príspevky. Ak chcete zobraziť príspevky, deaktivujte nastavenie „{rssSetting}“; ak chcete túto kartu skryť, aktivujte nastavenie „{hideSetting}“.
 Trending:
   Trending: 'Trendy'
   Trending Tabs: Karty trendov
@@ -187,6 +190,8 @@ User Playlists:
       Playlist {playlistName} has been successfully created.: Playlist {playlistName} bol úspešne vytvorený.
     New Playlist Name: Názov nového playlistu
   Export list of URLs: Exportovať zoznam adries URL
+  Move Video to the Top: Presunúť video na začiatok
+  Move Video to the Bottom: Presunúť video na koniec
 History:
   # On History Page
   History: 'História'
@@ -422,6 +427,9 @@ Settings:
       Full Screen: Celá obrazovka
       Default Viewing Mode: Predvolený režim zobrazenia
       Theater: Kino
+      Full Window (Always On): Celé okno (vždy zapnuté)
+      Full Screen (Always On): Celá obrazovka (vždy zapnuté)
+      Tooltip: Väčšina predvolených režimov prehrávania sa uplatňuje len na začiatku každej relácie pozerania. Zmeny vykonané počas relácie zostávajú zachované až do jej ukončenia. Režimy prehrávania, ktoré sú vždy zapnuté, sa uplatňujú vždy, keď prejdete na nové video, bez ohľadu na akékoľvek zmeny režimu prehrávania vykonané pri pozeraní predchádzajúceho videa.
   Subscription Settings:
     Subscription Settings: 'Odber'
     Fetch Feeds from RSS: Načítať kanály z RSS
@@ -468,6 +476,15 @@ Settings:
     Playlist File: Súbor playlistov
     History File: Súbor histórie
     Subscription File: Súbor odberov
+    Settings File: Súbor nastavení
+    Import Settings: Importovať nastavenia
+    Export Settings: Exportovať nastavenia
+    All settings have been successfully imported: Všetky nastavenia boli úspešne importované
+    All settings have been successfully exported: Všetky nastavenia boli úspešne exportované
+    Settings Tooltip: Nastavenia, ktoré sú špecifické pre OS/používateľa, alebo sú experimentálne, nie je možné exportovať ani importovať (napr. proxy, externý prehrávač, priečinok so snímkami obrazovky...)
+    Setting object has insufficient data, skipping item: Objekt nastavenia nemá dostatočné údaje, položka sa preskočí
+    Unknown setting key: 'Neznámy kľúč nastavenia: {key}'
+    Non-transferable setting key: 'Neprenositeľný kľúč nastavenia: {key}'
   Distraction Free Settings:
     Hide Live Chat: Skryť živý chat
     Hide Popular Videos: Skryť populárne videá
@@ -628,7 +645,6 @@ About:
   room rules: pravidlá miestností
   Chat on Matrix: Napíšte nám na Matrix-e
   Mastodon: Komunikačná platforma Mastodon
-  Email: Elektronická pošta
   Website: Webstránka
   Please check for duplicates before posting: Pred odoslaním prosím skontrolujte duplicitné otázky
   Discussions: Diskusie
@@ -696,6 +712,7 @@ Channel:
   Channel Tabs: Karty kanálov
   This channel is age-restricted and currently cannot be viewed in FreeTube.: Tento kanál je obmedzený vekom a momentálne nemôže byť pozeraný vo FreeTube.
   This channel does not exist: Tento kanál neexistuje
+  View All: Zobraziť všetko
 Video:
   Mark As Watched: 'Označiť ako pozerané'
   Remove From History: 'Odstrániť z histórie'
@@ -811,8 +828,10 @@ Video:
   Watch:
     'Remaining preroll-ad time: {remindingTimeSeconds}s': 'Zostávajúci čas prvotnej reklamy: {remindingTimeSeconds}s'
     'Remaining SABR backoff time: {remindingTimeSeconds}s': 'Zostávajúci čas pauzy SABR: {remindingTimeSeconds} s'
-  Popout Live Chat: Popout Chat
+  Popout Live Chat: Vyskakovací chat
   Private: Súkromné videá nie je možné pozerať vo FreeTube, pretože si vyžadujú prihlásenie cez Google a vlastníctvo daného videa.
+  Collapse Playlist: Zbaliť playlist
+  Expand Playlist: Rozbaliť playlist
 Playlist:
   #& About
   View Full Playlist: 'Zobraziť celý playlist'
@@ -863,7 +882,6 @@ Mini Player: 'Mini prehrávač'
 Comments:
   Comments: 'Komentáre'
   Click to View Comments: 'Kliknutím zobrazíte komentáre'
-  Getting comment replies, please wait: 'Získavanie odpovedí na komentáre, čakajte prosím'
   Hide Comments: 'Skryť komentáre'
   # Context: View 10 Replies, View 1 Reply
   There are no comments available for this video: 'Pre toto video nie sú dostupné žiadne komentáre'
@@ -872,15 +890,16 @@ Comments:
   Newest first: Najnovšie prvé
   Top comments: Najlepšie komentáre
   Pinned by: Pripnuté od
-  Show More Replies: Zobraziť viac odpovedí
+  Show More Replies: Zobraziť ďalšie odpovede
   Hearted: Obľúbené
   Subscribed: Odoberané
   Member: Člen
   There are no comments available for this post: Pre tento príspevok nie sú dostupné žiadne komentáre
   View {replyCount} replies from {channelName} and others: Zobraziť {replyCount} odpovedí od {channelName} a ostatných
   View 1 reply from {channelName}: Zobraziť 1 odpoveď od {channelName}
-  Hide {replyCount} replies: Skryť 1 odpoveď | Skryť odpovede v počte {replyCount}
+  Hide Replies: Skryť odpoveď | Skryť odpovede
   View {replyCount} replies: Zobraziť 1 odpoveď | Zobraziť {replyCount} odpovedí
+  Loading replies: Načítanie odpovedí...
 Up Next: 'Ďalšie'
 
 # Toast Messages
@@ -888,8 +907,8 @@ Local API Error (Click to copy): 'Chyba lokálneho API (kliknite pre kopírovani
 Invidious API Error (Click to copy): 'Chyba Invidious API (kliknite pre kopírovanie)'
 Falling back to Invidious API: 'Návrat k Invidious API'
 Falling back to Local API: 'Návrat k lokálnemu API'
-Loop is now disabled: 'Slučka je teraz vypnutá'
-Loop is now enabled: 'Slučka je teraz zapnutá'
+Loop is now disabled: 'Opakovanie videa je teraz vypnuté'
+Loop is now enabled: 'Opakovanie videa je teraz zapnuté'
 Shuffle is now disabled: 'Zamiešanie je teraz vypnuté'
 Shuffle is now enabled: 'Zamiešanie je teraz zapnuté'
 Playing Next Video: 'Prehrávanie nasledujúceho videa'
@@ -912,7 +931,7 @@ Tooltips:
     Skip by Scrolling Over Video Player: Použite koliesko myši na preskakovanie cez video v štýle MPV.
   General Settings:
     Region for Trending: Región trendov vám umožňuje zvoliť si krajinu pre trendové videá, ktoré chcete zobraziť.
-    Invidious Instance: Inštancia Invidious, ku ktorej sa FreeTube pripojí pre volania API.
+    Invidious Instance: Inštancia Invidious, ku ktorej sa FreeTube pripojí na účely volania API. Zmeny tohto nastavenia sa vzťahujú len na aktuálne okno, pokiaľ túto inštanciu nenastavíte ako predvolenú.
     Thumbnail Preference: Všetky náhľady vo FreeTube budú nahradené snímkou z videa, ktorá bude rozmazaná alebo skrytá namiesto východzieho náhľadu.
     Fallback to Non-Preferred Backend on Failure: Keď má vaše preferované API problém, FreeTube sa automaticky pokúsi použiť vaše nepreferované API ako náhradnú metódu, ak je táto funkcia zapnutá.
     Preferred API Backend: Vyberte backend, ktorý FreeTube používa na získavanie údajov. Lokálne API je vstavaný extraktor. API Invidious vyžaduje pripojenie k serveru Invidious.

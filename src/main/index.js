@@ -14,6 +14,8 @@ import {
   ABOUT_BITCOIN_ADDRESS,
   KeyboardShortcuts,
   SEARCH_CHAR_LIMIT,
+  LIGHT_BASE_THEMES,
+  DARK_BASE_THEMES,
 } from '../constants'
 import * as baseHandlers from '../datastores/handlers/base'
 import { extractExpiryTimestamp, ImageCache } from './ImageCache'
@@ -290,6 +292,7 @@ function runApp() {
   let trayOnMinimize = false
   let trayWindows = []
   const trayMaximizedWindows = {}
+  const isTrayOnMinimizeSupported = process.platform !== 'darwin' && (process.platform !== 'linux' || app.commandLine.getSwitchValue('ozone-platform') !== 'wayland')
 
   const userDataPath = app.getPath('userData')
 
@@ -346,7 +349,7 @@ function runApp() {
         if (!openDeepLinksInNewWindow) {
           // Just focus the main window (instead of starting a new instance)
           if (mainWindow.isMinimized()) {
-            if (process.platform !== 'darwin' && trayOnMinimize) {
+            if (isTrayOnMinimizeSupported && trayOnMinimize) {
               trayClick(mainWindow)
             } else {
               mainWindow.restore()
@@ -524,7 +527,7 @@ function runApp() {
             backendPreference = doc.value
             break
           case 'hideToTrayOnMinimize':
-            if (process.platform !== 'darwin') {
+            if (isTrayOnMinimizeSupported) {
               trayOnMinimize = doc.value
             }
             break
@@ -589,6 +592,19 @@ function runApp() {
         requestHeaders['Sec-Fetch-Site'] = 'same-origin'
         requestHeaders['Sec-Fetch-Mode'] = 'same-origin'
         requestHeaders['X-Youtube-Bootstrap-Logged-In'] = 'false'
+      } else if (
+        url.startsWith('https://www.youtube.com/watch') ||
+        (urlObj.origin === 'www.youtube.com' && urlObj.pathname === '/')
+      ) {
+        delete requestHeaders.Referer
+        delete requestHeaders.Origin
+        requestHeaders['Sec-Fetch-Dest'] = 'document'
+        requestHeaders['Sec-Fetch-Mode'] = 'navigate'
+        requestHeaders['Sec-Fetch-Site'] = 'none'
+        requestHeaders['Sec-Fetch-User'] = '?1'
+        requestHeaders.Cookie = requestHeaders.Cookie
+          ? requestHeaders.Cookie + `;PREF=tz=${Intl.DateTimeFormat().resolvedOptions().timeZone.replace('/', '.')}`
+          : ''
       } else if (url === 'https://www.youtube.com/sw.js_data' || url.startsWith('https://www.youtube.com/api/timedtext')) {
         requestHeaders.Referer = 'https://www.youtube.com/sw.js'
         requestHeaders['Sec-Fetch-Site'] = 'same-origin'
@@ -617,17 +633,29 @@ function runApp() {
         }
       }
 
+      // eslint-disable-next-line n/no-callback-literal
       callback({ requestHeaders })
     })
 
     // when we create a real session on the watch page, youtube returns tracking cookies, which we definitely don't want
-    const trackingCookieRequestFilter = { urls: ['https://www.youtube.com/sw.js_data', 'https://www.youtube.com/iframe_api'] }
+    const trackingCookieRequestFilter = {
+      urls: [
+        'https://www.youtube.com/sw.js_data',
+        'https://www.youtube.com/iframe_api',
+        'https://www.youtube.com/watch?*'
+      ]
+    }
 
     session.defaultSession.webRequest.onHeadersReceived(trackingCookieRequestFilter, ({ responseHeaders }, callback) => {
       if (responseHeaders) {
         delete responseHeaders['set-cookie']
+        delete responseHeaders['content-security-policy']
+        delete responseHeaders['cross-origin-opener-policy']
+        delete responseHeaders['report-to']
+        delete responseHeaders['reporting-endpoints']
       }
 
+      // eslint-disable-next-line n/no-callback-literal
       callback({ responseHeaders })
     })
 
@@ -670,11 +698,11 @@ function runApp() {
 
           // Electron doesn't allow certain headers to be set:
           // https://www.electronjs.org/docs/latest/api/client-request#requestsetheadername-value
-          // also blacklist Origin and Referrer as we don't want to let YouTube know about them
-          const blacklistedHeaders = ['content-length', 'host', 'trailer', 'te', 'upgrade', 'cookie2', 'keep-alive', 'transfer-encoding', 'origin', 'referrer']
+          // also denylist Origin and Referrer as we don't want to let YouTube know about them
+          const denylistedHeaders = ['content-length', 'host', 'trailer', 'te', 'upgrade', 'cookie2', 'keep-alive', 'transfer-encoding', 'origin', 'referrer']
 
           for (const header of Object.keys(request.headers)) {
-            if (!blacklistedHeaders.includes(header.toLowerCase())) {
+            if (!denylistedHeaders.includes(header.toLowerCase())) {
               newRequest.setHeader(header, request.headers[header])
             }
           }
@@ -723,6 +751,7 @@ function runApp() {
           redirectURL += `#${details.webContents.id}`
         }
 
+        // eslint-disable-next-line n/no-callback-literal
         callback({
           redirectURL
         })
@@ -730,6 +759,14 @@ function runApp() {
 
       // --- end of `if experimentsDisableDiskCache` ---
     }
+
+    try {
+      const baseTheme = await baseHandlers.settings._findOne('baseTheme')
+
+      if (baseTheme?.value) {
+        updateThemeSource(baseTheme.value)
+      }
+    } catch {}
 
     await createWindow()
 
@@ -969,7 +1006,6 @@ function runApp() {
       // It will be shown later when ready via `ready-to-show` event
       show: showWindowNow,
       backgroundColor: windowBackground,
-      darkTheme: nativeTheme.shouldUseDarkColors,
       icon: process.env.NODE_ENV === 'development'
         ? path.join(__dirname, '../../_icons/iconColor.png')
         : path.join(__dirname, '../_icons/iconColor.png'),
@@ -1032,7 +1068,7 @@ function runApp() {
 
     // endregion Ensure child windows use same options since electron 14
 
-    if (process.platform !== 'darwin') {
+    if (isTrayOnMinimizeSupported) {
       function manageTray(window, removeWindow = false) {
         if (tray) {
           if (!removeWindow) {
@@ -1144,7 +1180,7 @@ function runApp() {
         return
       }
 
-      if (process.platform !== 'darwin' && trayOnMinimize && trayWindows.length > 0) {
+      if (isTrayOnMinimizeSupported && trayOnMinimize && trayWindows.length > 0) {
         trayClick(newWindow)
       } else {
         newWindow.show()
@@ -1270,9 +1306,9 @@ function runApp() {
     })
   })
 
-  ipcMain.handle(IpcChannels.GENERATE_PO_TOKEN, (event, videoId, context) => {
+  ipcMain.handle(IpcChannels.GENERATE_PO_TOKEN, (event, videoId, context, initialAttestationData, ytConfig) => {
     if (isFreeTubeUrl(event.senderFrame.url)) {
-      return generatePoToken(videoId, context, proxyUrl)
+      return generatePoToken(videoId, context, initialAttestationData, ytConfig, proxyUrl)
     }
   })
 
@@ -1343,6 +1379,12 @@ function runApp() {
     if (isFreeTubeUrl(event.senderFrame.url)) {
       // we should switch to getPreferredSystemLanguages at some point and iterate through until we find a supported locale
       return app.getSystemLocale()
+    }
+  })
+
+  ipcMain.handle(IpcChannels.IS_WAYLAND_PLATFORM, (event) => {
+    if (isFreeTubeUrl(event.senderFrame.url)) {
+      return app.commandLine.getSwitchValue('ozone-platform') === 'wayland'
     }
   })
 
@@ -1439,7 +1481,8 @@ function runApp() {
     const filePath = path.resolve(directory, filename)
 
     // Ensure that we are only writing inside of the expected directory
-    if (path.dirname(filePath) !== directory) {
+    // 'path.dirname' does not return trailing slash, remove it from 'directory' path to ensure consistent comparison
+    if (path.dirname(filePath) !== directory.replace(/\/$/, '')) {
       throw new Error('Invalid save location')
     }
 
@@ -1612,6 +1655,14 @@ function runApp() {
     }
   })
 
+  function updateThemeSource(baseTheme) {
+    nativeTheme.themeSource = LIGHT_BASE_THEMES.includes(baseTheme)
+      ? 'light'
+      : (DARK_BASE_THEMES.includes(baseTheme)
+          ? 'dark'
+          : 'system')
+  }
+
   // ************************************************* //
   // DB related IPC calls
   // *********** //
@@ -1656,10 +1707,13 @@ function runApp() {
               await setMenu()
               break
             case 'hideToTrayOnMinimize':
-              if (process.platform !== 'darwin') {
+              if (isTrayOnMinimizeSupported) {
                 trayOnMinimize = data.value
                 if (!trayOnMinimize) { showHiddenWindows() }
               }
+              break
+            case 'baseTheme':
+              updateThemeSource(data.value)
               break
 
             default:
@@ -1722,6 +1776,24 @@ function runApp() {
             IpcChannels.SYNC_HISTORY,
             event,
             { event: SyncEvents.HISTORY.UPDATE_PLAYLIST, data }
+          )
+          return null
+
+        case DBActions.HISTORY.UNSET_PLAYLIST_FOR_VIDEOS:
+          await baseHandlers.history.unsetLastViewedPlaylistForVideos(data.videoIds, data.lastViewedPlaylistId)
+          syncOtherWindows(
+            IpcChannels.SYNC_HISTORY,
+            event,
+            { event: SyncEvents.HISTORY.UNSET_PLAYLIST_FOR_VIDEOS, data }
+          )
+          return null
+
+        case DBActions.HISTORY.UNSET_PLAYLISTS:
+          await baseHandlers.history.unsetLastViewedPlaylists(data)
+          syncOtherWindows(
+            IpcChannels.SYNC_HISTORY,
+            event,
+            { event: SyncEvents.HISTORY.UNSET_PLAYLISTS, data }
           )
           return null
 
@@ -2114,7 +2186,7 @@ function runApp() {
     })
   }
 
-  if (process.platform !== 'darwin') {
+  if (isTrayOnMinimizeSupported) {
     app.on('before-quit', () => {
       if (tray) { tray.destroy() }
     })
